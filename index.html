@@ -1259,7 +1259,7 @@ function drawStudent() {
     let h = `<div class="hero"><div class="small" style="opacity:.8">Auto y coevaluación${p.d ? ' · ' + esc(p.d) : ''}</div>
         <h2>${esc(p.n || 'Proyecto en equipo')}</h2>
         <div style="opacity:.9;margin-top:4px">${esc(p.g || '')} ${p.e ? '· ' + esc(p.e) : ''}${p.t ? '<br>Tema: ' + esc(p.t) : ''}</div></div>`;
-    if (!stu.me) {
+    if (stu.me == null) {
         h += `<div class="panel"><h3>¿Quién eres?</h3><div class="btn-row" style="flex-direction:column;align-items:stretch">
             ${p.m.map((n, k) => `<button class="btn-ghost" type="button" style="justify-content:flex-start;padding:14px" onclick="stu.me=${k}; drawStudent()">${esc(n)}</button>`).join('')}</div></div>`;
     } else if (stu.done) {
