@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Evaluador Docente · Weird Games: crea rúbricas y listas de cotejo, evalúa equipos y combina auto, co y heteroevaluación.">
+<meta name="theme-color" content="#1F2A44">
+<title>Evaluador Docente · Weird Games</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F2A44'/%3E%3Cpath d='M16 34l10 10 22-24' stroke='%23F5B700' stroke-width='7' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root {
+    --ink: #1c2434; --ink-2: #4a5468; --muted: #6b7486;
+    --bg: #f3f5f9; --surface: #ffffff; --surface-2: #f8f9fc; --line: #e1e5ee; --line-2: #cfd5e2;
+    --brand: #1F2A44; --brand-ink: #ffffff;
+    --accent: #2E6BE6; --accent-soft: #e8f0fe; --accent-ink: #1d4fb8;
+    --weird: #7B3FA0; --weird-soft: #f3ebf8;
+    --gold: #F5B700;
+    --ok: #1f9d55; --ok-soft: #e5f6ec; --warn: #d98a00; --warn-soft: #fff4dc; --danger: #d64545; --danger-soft: #fdeaea;
+    --lv0: #d4f1df; --lv1: #dbe8fb; --lv2: #fdebcf; --lv3: #f9dada; --lvn: #eef0f4;
+    --shadow: 0 1px 2px rgba(20,30,60,.06), 0 6px 20px rgba(20,30,60,.06);
+    --radius: 14px;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --ink: #e8ebf2; --ink-2: #c3c9d6; --muted: #98a1b3;
+        --bg: #0f1420; --surface: #171d2b; --surface-2: #1d2434; --line: #2a3346; --line-2: #36405a;
+        --brand: #0b1020; --accent: #6b9cff; --accent-soft: #1d2b4d; --accent-ink: #a9c4ff;
+        --weird: #c08ce0; --weird-soft: #2b2040;
+        --ok: #4cc584; --ok-soft: #173426; --warn: #f0b440; --warn-soft: #3a2e14; --danger: #f07373; --danger-soft: #3d1c1f;
+        --lv0: #1d4a33; --lv1: #1f3558; --lv2: #4a3a17; --lv3: #4c2326; --lvn: #222a3b;
+        --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+        color-scheme: dark;
+    }
+}
+:root[data-theme="dark"] {
+    --ink: #e8ebf2; --ink-2: #c3c9d6; --muted: #98a1b3;
+    --bg: #0f1420; --surface: #171d2b; --surface-2: #1d2434; --line: #2a3346; --line-2: #36405a;
+    --brand: #0b1020; --accent: #6b9cff; --accent-soft: #1d2b4d; --accent-ink: #a9c4ff;
+    --weird: #c08ce0; --weird-soft: #2b2040;
+    --ok: #4cc584; --ok-soft: #173426; --warn: #f0b440; --warn-soft: #3a2e14; --danger: #f07373; --danger-soft: #3d1c1f;
+    --lv0: #1d4a33; --lv1: #1f3558; --lv2: #4a3a17; --lv3: #4c2326; --lvn: #222a3b;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+    color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+a { color: var(--accent); }
+h1, h2, h3, h4 { line-height: 1.25; margin: 0; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; margin: 22px 0 10px; }
+.hidden { display: none !important; }
+.muted { color: var(--muted); font-size: .9em; }
+.small { font-size: .82em; }
+
+/* ---------- Barra superior ---------- */
+.topbar { background: var(--brand); color: var(--brand-ink); position: sticky; top: 0; z-index: 30; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+.topbar-inner { max-width: 1120px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 14px; }
+.logo { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.logo svg { flex-shrink: 0; }
+.logo b { font-size: 1.05rem; letter-spacing: .01em; white-space: nowrap; }
+.logo small { display: block; opacity: .7; font-size: .75rem; white-space: nowrap; }
+.tabs { display: flex; gap: 4px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button {
+    background: transparent; color: rgba(255,255,255,.78); border: 0; padding: 8px 12px; border-radius: 9px;
+    font: inherit; font-weight: 600; font-size: .9rem; cursor: pointer; white-space: nowrap; display: flex; gap: 6px; align-items: center;
+}
+.tabs button:hover { background: rgba(255,255,255,.08); color: #fff; }
+.tabs button.active { background: rgba(255,255,255,.14); color: #fff; box-shadow: inset 0 -2px 0 var(--gold); }
+.tabs button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+main { max-width: 1120px; margin: 0 auto; padding: 22px 16px 60px; }
+.page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.page-head p { margin: 4px 0 0; }
+
+/* ---------- Superficies ---------- */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+.panel + .panel { margin-top: 14px; }
+.panel h3:first-child { margin-top: 0; }
+.banner { border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: .92em; display: flex; gap: 10px; align-items: flex-start; }
+.banner.warn { background: var(--warn-soft); color: var(--ink); border: 1px solid var(--warn); }
+.banner.info { background: var(--accent-soft); color: var(--ink); border: 1px solid var(--accent); }
+.banner .grow { flex: 1; }
+
+/* ---------- Botones y campos ---------- */
+button, .btn {
+    font: inherit; font-weight: 600; font-size: .9rem; border: 1px solid transparent; border-radius: 10px;
+    padding: 9px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+    transition: background .15s, border-color .15s, transform .05s; text-decoration: none; line-height: 1.2;
+}
+button:active { transform: translateY(1px); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible, .btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-ink); }
+.btn-ok { background: var(--ok); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--line-2); }
+.btn-ghost:hover { background: var(--surface-2); border-color: var(--accent); }
+.btn-soft { background: var(--accent-soft); color: var(--accent-ink); }
+.btn-icon { padding: 7px 10px; background: var(--surface-2); color: var(--ink); border-color: var(--line); }
+.btn-icon:hover { border-color: var(--accent); }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn-row.end { justify-content: flex-end; }
+.btn-row.center { justify-content: center; }
+
+input[type=text], input[type=date], input[type=search], input[type=number], select, textarea {
+    font: inherit; font-size: .95rem; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line-2); border-radius: 10px; padding: 9px 11px; width: 100%;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea { resize: vertical; min-height: 64px; }
+label.field { display: flex; flex-direction: column; gap: 5px; font-weight: 600; font-size: .86rem; color: var(--ink-2); }
+.grid { display: grid; gap: 12px; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --on-accent: #0b1020; } }
+:root[data-theme="dark"] { --on-accent: #0b1020; }
+.btn-primary, .btn-ok, .btn-danger, .chip input:checked + span, .member-pick button.on, .seg button.on, .rate input:checked + span, .settings-nav button.active { color: var(--on-accent, #fff); }
+
+/* ---------- Biblioteca ---------- */
+.welcome { background: linear-gradient(135deg, var(--brand), #33437a); color: #fff; border-radius: var(--radius); padding: 22px; margin-bottom: 18px; position: relative; }
+.welcome h2 { font-size: 1.35rem; }
+.welcome p { opacity: .9; margin: 6px 0 16px; max-width: 720px; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.step { background: rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; font-size: .9rem; }
+.step b { display: block; color: var(--gold); margin-bottom: 2px; }
+.welcome .close { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,.12); color: #fff; padding: 5px 10px; }
+.section-label { font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 22px 0 10px; display: flex; align-items: center; gap: 10px; }
+.section-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); transition: border-color .15s, transform .15s; }
+.card:hover { border-color: var(--line-2); transform: translateY(-1px); }
+.card h4 { font-size: 1.02rem; }
+.card .meta { color: var(--muted); font-size: .84rem; }
+.card .btn-row { margin-top: auto; padding-top: 6px; }
+.card button { padding: 7px 11px; font-size: .84rem; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: .7rem; font-weight: 800; padding: 3px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: .04em; }
+.badge.rubric { background: var(--accent-soft); color: var(--accent-ink); }
+.badge.checklist { background: var(--ok-soft); color: var(--ok); }
+.badge.builtin { background: var(--weird-soft); color: var(--weird); }
+.badge.weighted { background: var(--warn-soft); color: var(--warn); }
+
+/* ---------- Editor ---------- */
+.ed-block { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.level-row { display: grid; grid-template-columns: 1fr 150px auto; gap: 8px; align-items: end; margin-bottom: 8px; }
+.crit-head { display: grid; grid-template-columns: auto 1fr 110px auto; gap: 8px; align-items: center; margin-bottom: 10px; }
+.crit-head .num { font-weight: 800; color: var(--muted); }
+.crit-head input.cname { font-weight: 700; }
+.weight-field { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--muted); font-weight: 600; }
+.weight-field input { padding: 8px; text-align: center; }
+.desc-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.desc-grid label.field { font-weight: 600; }
+.item-row { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+.item-row .num { text-align: right; color: var(--muted); font-weight: 800; }
+.sticky-actions { position: sticky; bottom: 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px); padding: 12px 0; margin-top: 10px; border-top: 1px solid var(--line); }
+
+/* ---------- Evaluar ---------- */
+.eval-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; align-items: start; }
+.side { position: sticky; top: 76px; display: grid; gap: 12px; }
+.score-card { background: var(--brand); color: #fff; border-radius: var(--radius); padding: 18px; text-align: center; }
+.score-card .lbl { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+.score-card .big { font-size: 3rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.score-card .sub { font-size: .85rem; opacity: .85; }
+.bar { height: 6px; background: rgba(255,255,255,.18); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+.bar i { display: block; height: 100%; background: var(--gold); width: 0; transition: width .25s; }
+.save-status { font-size: .82rem; font-weight: 600; color: var(--muted); }
+.save-status.dirty { color: var(--warn); }
+.save-status.saved { color: var(--ok); }
+.member-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.member-pick button { padding: 5px 10px; font-size: .82rem; background: var(--surface-2); border: 1px solid var(--line-2); color: var(--ink); border-radius: 99px; font-weight: 500; }
+.member-pick button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.crit { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+.crit-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.crit-top h4 { font-size: 1rem; }
+.crit-top .w { font-size: .75rem; color: var(--muted); font-weight: 600; margin-left: 6px; }
+.crit-score { font-size: 1.5rem; font-weight: 800; color: var(--accent); min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+.crit-score.empty { color: var(--line-2); }
+.prev-hint { font-size: .78rem; font-weight: 600; color: var(--muted); }
+.levels { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); }
+.level { padding: 12px 14px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; transition: background .15s; }
+.level:last-child { border-right: 0; }
+.level:hover { background: var(--surface-2); }
+.level.selected { background: var(--accent-soft); box-shadow: inset 0 3px 0 var(--accent); }
+.level .lname { font-weight: 700; font-size: .86rem; }
+.level .lname small { color: var(--muted); font-weight: 600; }
+.level .ldesc { font-size: .85rem; color: var(--ink-2); flex: 1; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; height: 40px; padding: 0 8px; border: 2px solid var(--line-2); border-radius: 10px; font-weight: 800; cursor: pointer; background: var(--surface); user-select: none; transition: all .12s; }
+.chip span:hover { border-color: var(--accent); }
+.chip input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip input:focus-visible + span { outline: 3px solid var(--accent-soft); outline-offset: 1px; }
+.feedback { padding: 10px 16px; border-top: 1px dashed var(--line); font-size: .86rem; display: grid; gap: 3px; background: var(--surface); }
+.feedback:empty { display: none; }
+.feedback .next { color: var(--accent-ink); }
+.check-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; margin-bottom: 8px; transition: background .15s, border-color .15s; }
+.check-item:hover { border-color: var(--accent); }
+.check-item.done { background: var(--ok-soft); border-color: var(--ok); }
+.check-item input { width: 22px; height: 22px; accent-color: var(--ok); flex-shrink: 0; }
+.phrases { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.phrase { background: var(--surface-2); border: 1px solid var(--line-2); color: var(--ink); border-radius: 99px; padding: 5px 11px; font-size: .8rem; font-weight: 500; }
+.phrase:hover { border-color: var(--accent); background: var(--accent-soft); }
+.compare-note { font-size: .86rem; background: var(--weird-soft); color: var(--ink); border-left: 4px solid var(--weird); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; }
+.delta { font-weight: 800; } .delta.up { color: var(--ok); } .delta.down { color: var(--danger); } .delta.same { color: var(--muted); }
+
+/* ---------- 360 ---------- */
+.t360 { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.t360 th { text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 8px 6px; border-bottom: 2px solid var(--line); }
+.t360 td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.t360 input { padding: 6px 8px; width: 74px; text-align: center; }
+.t360 .final { font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.t360 .src { font-size: .72rem; color: var(--muted); display: block; }
+.qr-box { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: 12px; padding: 14px; margin-top: 12px; }
+.qr-box img { width: 168px; height: 168px; image-rendering: pixelated; background: #fff; border-radius: 8px; padding: 4px; }
+.qr-box .grow { flex: 1; min-width: 200px; }
+.code-out { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; word-break: break-all; background: var(--surface); border: 1px solid var(--line); padding: 8px; border-radius: 8px; max-height: 90px; overflow: auto; }
+
+/* ---------- Tablas / historial ---------- */
+.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+table.data { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.data th { background: var(--surface-2); text-align: left; font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.data td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.data tr:last-child td { border-bottom: 0; }
+table.data tr:hover td { background: var(--surface-2); }
+.grade { font-weight: 800; font-variant-numeric: tabular-nums; padding: 3px 9px; border-radius: 8px; display: inline-block; }
+.g-hi { background: var(--ok-soft); color: var(--ok); } .g-mid { background: var(--warn-soft); color: var(--warn); } .g-lo { background: var(--danger-soft); color: var(--danger); }
+.filters { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)) 2fr; gap: 10px; margin-bottom: 14px; }
+.stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; font-size: .82rem; color: var(--muted); min-width: 110px; }
+.stat b { display: block; font-size: 1.4rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--muted); background: var(--surface); border: 1px dashed var(--line-2); border-radius: var(--radius); }
+.empty-state .ico { font-size: 2rem; display: block; margin-bottom: 6px; }
+.histo { display: flex; align-items: flex-end; gap: 6px; height: 90px; padding: 6px 0; }
+.histo div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .72rem; color: var(--muted); height: 100%; justify-content: flex-end; }
+.histo i { width: 100%; background: var(--accent); border-radius: 6px 6px 2px 2px; min-height: 2px; opacity: .85; }
+
+/* ---------- Vista de grupo ---------- */
+.heat { width: 100%; border-collapse: separate; border-spacing: 3px; min-width: 560px; }
+.heat th { font-size: .74rem; text-align: center; vertical-align: bottom; color: var(--muted); padding: 6px 4px; font-weight: 700; }
+.heat th:first-child { text-align: left; }
+.heat td { text-align: center; font-weight: 800; padding: 9px 6px; border-radius: 7px; font-variant-numeric: tabular-nums; }
+.heat td.team { text-align: left; font-weight: 600; background: var(--surface-2); cursor: pointer; }
+.heat td.team:hover { color: var(--accent); }
+.heat td.team small { display: block; font-weight: 400; color: var(--muted); font-size: .78em; }
+.heat tr.avg-row td { outline: 2px solid var(--line-2); }
+.heat td.selected-team { outline: 3px solid var(--accent); }
+.lv0 { background: var(--lv0); } .lv1 { background: var(--lv1); } .lv2 { background: var(--lv2); } .lv3 { background: var(--lv3); } .lv-none { background: var(--lvn); color: var(--muted); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: .8rem; margin: 10px 0; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+.insight { border-radius: 12px; padding: 12px 14px; margin: 10px 0; font-size: .92rem; }
+.insight.weak { background: var(--warn-soft); border-left: 5px solid var(--warn); }
+.insight.strong { background: var(--ok-soft); border-left: 5px solid var(--ok); }
+.progress-panel { margin-top: 18px; border: 2px solid var(--accent); }
+
+/* ---------- Ajustes ---------- */
+.settings-nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.settings-nav button { background: var(--surface); border: 1px solid var(--line-2); color: var(--ink); }
+.settings-nav button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.group-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--surface-2); margin-bottom: 10px; }
+.group-card .head { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.group-card .head input { font-weight: 700; max-width: 220px; }
+.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; }
+.seg button { border-radius: 0; background: var(--surface); color: var(--ink); border: 0; border-right: 1px solid var(--line-2); }
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: #fff; }
+
+/* ---------- Modo alumno ---------- */
+.student { max-width: 640px; margin: 0 auto; }
+.student .hero { background: linear-gradient(135deg, var(--brand), #33437a); color: #fff; border-radius: var(--radius); padding: 20px; margin-bottom: 14px; }
+.student .hero h2 { font-size: 1.3rem; }
+.rate-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.rate-row:last-child { border-bottom: 0; }
+.rate { display: inline-flex; gap: 4px; }
+.rate label { position: relative; }
+.rate input { position: absolute; opacity: 0; }
+.rate span { display: inline-block; padding: 7px 10px; border: 1px solid var(--line-2); border-radius: 9px; font-size: .8rem; font-weight: 700; cursor: pointer; background: var(--surface); }
+.rate input:checked + span { background: var(--accent); color: #fff; border-color: var(--accent); }
+.rate input:focus-visible + span { outline: 3px solid var(--accent-soft); }
+
+/* ---------- Diálogo y aviso ---------- */
+dialog.modal { border: 0; border-radius: 16px; padding: 0; width: min(460px, 92vw); background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+dialog.modal::backdrop { background: rgba(10,15,30,.55); backdrop-filter: blur(2px); }
+.modal-body { padding: 20px 20px 8px; white-space: pre-line; }
+.modal-body h3 { margin: 0 0 8px; }
+.modal-actions { padding: 12px 20px 18px; display: flex; gap: 8px; justify-content: flex-end; }
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 12px 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.25); z-index: 99; font-size: .92em; max-width: 90vw; text-align: center; animation: pop .2s ease-out; }
+@keyframes pop { from { opacity: 0; transform: translate(-50%, 8px); } }
+
+footer.app { text-align: center; font-size: .8rem; color: var(--muted); padding: 24px 16px 40px; }
+footer.app b { color: var(--weird); }
+
+/* ---------- Hojas impresas ---------- */
+#printArea { display: none; }
+.sheet { color: #111; background: #fff; font-size: 11pt; }
+.sheet + .sheet { page-break-before: always; }
+.sheet h2 { border-bottom: 3px solid #2E6BE6; padding-bottom: 6px; margin-bottom: 10px; font-size: 15pt; }
+.sheet .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; margin-bottom: 12px; }
+.sheet .line { border-bottom: 1px solid #999; display: inline-block; min-width: 180px; }
+.sheet table { width: 100%; border-collapse: collapse; }
+.sheet th, .sheet td { border: 1px solid #bbb; padding: 7px; vertical-align: top; font-size: 10pt; text-align: left; }
+.sheet th { background: #eef2fb; }
+.sheet .notes { break-inside: avoid; margin-top: 10px; padding: 10px; border: 1px solid #bbb; border-radius: 6px; min-height: 50px; }
+.sheet .foot { margin-top: 14px; font-size: 8pt; color: #888; text-align: center; }
+.sheet .box { display: inline-block; width: 22px; height: 18px; border: 1px solid #888; vertical-align: middle; }
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 900px) {
+    .eval-layout { grid-template-columns: minmax(0, 1fr); }
+    .side { position: static; order: -1; grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+    .filters { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+    body { font-size: 14.5px; }
+    .logo small { display: none; }
+    .topbar-inner { flex-wrap: wrap; padding: 8px 12px; }
+    .tabs { margin-left: 0; width: 100%; }
+    .tabs .t { display: none; }
+    .tabs button { flex: 1; justify-content: center; padding: 8px 6px; font-size: 1.15rem; }
+    main { padding: 16px 10px 50px; }
+    .g2, .g3, .g4, .steps, .filters { grid-template-columns: 1fr; }
+    .side { grid-template-columns: minmax(0, 1fr); }
+    .levels { grid-template-columns: 1fr; }
+    .level { border-right: 0; border-bottom: 1px solid var(--line); }
+    .level-row { grid-template-columns: 1fr 100px; }
+    .level-row .btn-row { grid-column: 1 / -1; }
+    .crit-head { grid-template-columns: auto 1fr; }
+    .crit-head .weight-field, .crit-head .btn-row { grid-column: 2; }
+    table.data thead { display: none; }
+    table.data tr { display: block; border-bottom: 1px solid var(--line); padding: 6px 0; }
+    table.data td { display: block; border: 0; padding: 3px 12px; }
+}
+
+@media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: #fff; color: #111; }
+    .topbar, footer.app, .no-print, .banner, .side .btn-row, dialog { display: none !important; }
+    main { padding: 0; max-width: 100%; }
+    .eval-layout { grid-template-columns: 1fr; }
+    .side { position: static; }
+    .crit, .check-item { break-inside: avoid; }
+    body.printing-sheet main { display: none; }
+    body.printing-sheet #printArea { display: block; }
+    @page { margin: 14mm; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="logo">
+            <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#2b3a63"/><path d="M16 34l10 10 22-24" stroke="#F5B700" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div><b>Evaluador Docente</b><small>Weird Games · Gabriel González Jiménez</small></div>
+        </div>
+        <nav class="tabs" id="tabs" aria-label="Secciones">
+            <button data-view="library" type="button"><span aria-hidden="true">📚</span><span class="t">Instrumentos</span></button>
+            <button data-view="evaluate" type="button"><span aria-hidden="true">✏️</span><span class="t">Evaluar</span></button>
+            <button data-view="group" type="button"><span aria-hidden="true">👥</span><span class="t">Grupo</span></button>
+            <button data-view="history" type="button"><span aria-hidden="true">🗂</span><span class="t">Historial</span></button>
+            <button data-view="settings" type="button"><span aria-hidden="true">⚙️</span><span class="t">Ajustes</span></button>
+        </nav>
+    </div>
+</header>
+
+<main id="app">
+    <div id="storageBanner" class="banner warn hidden" role="alert">
+        <span>⚠️</span><div class="grow">Este navegador no está guardando datos (modo incógnito o vista previa). Lo que hagas se perderá al cerrar. Ábrelo en Chrome o Edge normal, o descarga un respaldo en <b>Ajustes → Respaldo</b> antes de salir.</div>
+    </div>
+    <div id="draftBanner" class="banner info hidden">
+        <span>💾</span><div class="grow" id="draftText"></div>
+        <button class="btn-primary" type="button" onclick="restoreDraft()">Recuperar</button>
+        <button class="btn-ghost" type="button" onclick="discardDraft()">Descartar</button>
+    </div>
+
+    <!-- INSTRUMENTOS -->
+    <section id="view-library" class="view">
+        <div id="welcome"></div>
+        <div class="page-head">
+            <div><h2>Instrumentos de evaluación</h2><p class="muted">Usa una plantilla tal cual, duplícala para adaptarla o crea la tuya.</p></div>
+            <div class="btn-row">
+                <button class="btn-ghost" type="button" onclick="document.getElementById('tplImport').click()">⬆ Importar plantilla</button>
+                <button class="btn-primary" type="button" onclick="newTemplate('rubric')">+ Nueva rúbrica</button>
+                <button class="btn-ok" type="button" onclick="newTemplate('checklist')">+ Nueva lista de cotejo</button>
+                <input type="file" id="tplImport" accept=".json,application/json" class="hidden" onchange="importTemplateFile(this)">
+            </div>
+        </div>
+        <div id="libraryCards"></div>
+    </section>
+
+    <!-- EDITOR -->
+    <section id="view-editor" class="view hidden">
+        <div class="page-head">
+            <h2 id="editorTitle">Editar</h2>
+            <div class="btn-row">
+                <button class="btn-ghost" type="button" onclick="cancelEditor()">Cancelar</button>
+                <button class="btn-ok" type="button" onclick="saveEditor()">Guardar plantilla</button>
+            </div>
+        </div>
+        <div id="editorBody"></div>
+    </section>
+
+    <!-- EVALUAR -->
+    <section id="view-evaluate" class="view hidden">
+        <div id="evalBody"></div>
+    </section>
+
+    <!-- GRUPO -->
+    <section id="view-group" class="view hidden">
+        <div class="page-head">
+            <div><h2>Vista de grupo</h2><p class="muted">Cada celda es el nivel que alcanzó el equipo en ese criterio. Toca un equipo para ver su progreso.</p></div>
+            <button class="btn-ghost no-print" id="btnPrintAll" type="button" onclick="printGroupFeedback()">🖨 Retroalimentación de todos</button>
+        </div>
+        <div class="filters no-print" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+            <label class="field">Grupo <select id="gGroup" onchange="gState.team=null; renderGroup()"></select></label>
+            <label class="field">Instrumento <select id="gTemplate" onchange="gState.team=null; renderGroup()"></select></label>
+            <label class="field">Momento <select id="gMomento" onchange="renderGroup()"></select></label>
+        </div>
+        <div id="groupBody"></div>
+        <div id="teamProgress"></div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="view-history" class="view hidden">
+        <div class="page-head">
+            <div><h2>Historial</h2><p class="muted">Todas tus evaluaciones guardadas en este navegador.</p></div>
+            <div class="btn-row">
+                <button class="btn-ghost" type="button" onclick="exportCSV()">⬇ Equipos (Excel)</button>
+                <button class="btn-ghost" type="button" onclick="exportStudentsCSV()">⬇ Alumnos 360° (Excel)</button>
+            </div>
+        </div>
+        <div class="filters">
+            <label class="field">Grupo <select id="fGroup" onchange="renderHistory()"></select></label>
+            <label class="field">Instrumento <select id="fTemplate" onchange="renderHistory()"></select></label>
+            <label class="field">Momento <select id="fMomento" onchange="renderHistory()"></select></label>
+            <label class="field">Buscar <input type="search" id="fSearch" placeholder="Equipo, integrantes o tema…" oninput="renderHistory()"></label>
+        </div>
+        <div id="historyStats"></div>
+        <div id="historyBody"></div>
+    </section>
+
+    <!-- AJUSTES -->
+    <section id="view-settings" class="view hidden">
+        <div class="page-head"><div><h2>Ajustes</h2><p class="muted">Personaliza el evaluador para tus grupos y tu forma de trabajar.</p></div></div>
+        <div class="settings-nav" id="settingsNav">
+            <button type="button" data-s="profile">Perfil</button>
+            <button type="button" data-s="groups">Grupos y alumnos</button>
+            <button type="button" data-s="peer">Auto y coevaluación</button>
+            <button type="button" data-s="phrases">Frases</button>
+            <button type="button" data-s="backup">Respaldo</button>
+        </div>
+        <div id="settingsBody"></div>
+    </section>
+
+    <!-- MODO ALUMNO -->
+    <section id="view-student" class="view hidden"><div class="student" id="studentBody"></div></section>
+</main>
+
+<footer class="app">Evaluador Docente v2.0 · Desarrollado por <b>Gabriel González Jiménez</b> · Weird Games © 2026<br>Tus datos se guardan solo en este navegador.</footer>
+<div id="printArea"></div>
+<dialog class="modal" id="modal"><form method="dialog"><div class="modal-body" id="modalBody"></div><div class="modal-actions" id="modalActions"></div></form></dialog>
+    <!-- Librería qrcode-generator 1.4.4 (Kazuhiko Arase, licencia MIT), incluida aquí para que el QR funcione sin internet -->
+    <script>var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});</script>
+<script>
+/* =====================================================================
+   Evaluador Docente v2.0 · Weird Games · Gabriel González Jiménez
+   Todo se guarda en el navegador (localStorage). Sin servidores.
+   ===================================================================== */
+const KEY = 'weirdgames_evaluador_v1';          // misma llave que la v1: los datos se conservan
+const DRAFT_KEY = KEY + '_borrador';
+const APP_VERSION = 2;
+let db = {};
+let storageOK = true;
+
+const DEFAULT_MOMENTOS = ['Diagnóstico', 'Avance 1', 'Avance 2', 'Avance 3', 'Final'];
+const DEFAULT_PHRASES = [
+    'Excelente trabajo en equipo, ¡sigan así!',
+    'Revisen sus fuentes: usen al menos dos confiables.',
+    'Practiquen la exposición sin leer; usen tarjetas con palabras clave.',
+    'Cuiden el volumen y miren al grupo al explicar.',
+    'Organicen la información en inicio, desarrollo y cierre.',
+    'Terminen los elementos pendientes antes de la siguiente revisión.',
+    'Agreguen imágenes que expliquen el tema, no solo que decoren.',
+    'Repartan mejor las tareas entre todos los integrantes.',
+    'Se nota el avance respecto a la revisión anterior.'
+];
+const DEFAULT_CO = ['Aporta información', 'Trae y cuida materiales', 'Trabaja en las tareas del equipo', 'Asiste y llega a tiempo', 'Respeta y escucha a los demás'];
+const CO_SCALE = [{ v: 0, t: 'Nunca' }, { v: 1, t: 'A veces' }, { v: 2, t: 'Siempre' }];
+const momentos = () => db.settings.momentos;
+const momIdx = m => { const i = momentos().indexOf(m); return i < 0 ? momentos().length : i; };
+
+/* ---------- Plantillas incluidas ---------- */
+const L4 = [{ name: 'Destacado', scores: [10] }, { name: 'Satisfactorio', scores: [9, 8] }, { name: 'Básico', scores: [7, 6] }, { name: 'En desarrollo', scores: [5] }];
+function builtins() {
+    const R = (id, name, description, levels, criteria) => ({ id, type: 'rubric', builtin: true, name, description, levels: clone(levels), criteria: criteria.map(c => ({ name: c[0], weight: c[2] || 1, desc: c[1] })) });
+    const C = (id, name, description, items) => ({ id, type: 'checklist', builtin: true, name, description, minFive: true, items: items.map(text => ({ text })) });
+    return [
+        R('base-weird-games', 'Rúbrica de Proyectos en Equipo', 'La rúbrica base Weird Games para exposiciones y proyectos en equipo.',
+            [{ name: 'Muy Bien', scores: [10] }, { name: 'Bien', scores: [9, 8] }, { name: 'Suficiente', scores: [7, 6] }, { name: 'Insuficiente', scores: [5] }], [
+            ['Calidad de Información', ['Información completa, veraz y con fuentes claras.', 'Información correcta, aunque falta profundizar.', 'Información básica y algo superficial.', 'Información errónea o incompleta.']],
+            ['Explicación', ['Dominio total. Explica con sus propias palabras.', 'Explica bien, pero depende de leer notas.', 'Muestra inseguridad en conceptos clave.', 'Se limita a leer material de apoyo.']],
+            ['Organización', ['Estructura lógica: inicio, desarrollo y cierre.', 'Estructura clara pero transiciones bruscas.', 'Presentación algo desordenada.', 'Sin orden ni coherencia.']],
+            ['Exposición Oral', ['Excelente volumen, dicción y contacto visual.', 'Buen volumen, contacto visual intermitente.', 'Voz baja. Lee mucho y no mira al grupo.', 'No se escucha o evita contacto visual.']],
+            ['Letra e Imágenes', ['Letra legible. Imágenes claras y útiles.', 'Letra legible, imágenes con poca nitidez.', 'Letra difícil de leer o imágenes poco relacionadas.', 'Letra muy pequeña o sin imágenes.']],
+            ['Trabajo Terminado', ['Trabajo completo, entregado a tiempo y con todos los elementos solicitados.', 'Trabajo completo, pero con detalles menores sin terminar o con poco retraso.', 'Trabajo incompleto: faltan elementos importantes.', 'No se entregó o está muy incompleto.']]
+        ]),
+        R('tpl-exposicion', 'Exposición oral', 'Para presentaciones individuales o en equipo frente al grupo.', L4, [
+            ['Dominio del tema', ['Explica con sus palabras, da ejemplos y responde dudas con seguridad.', 'Explica correctamente con apoyo ocasional de notas.', 'Explica lo básico; depende de leer.', 'Lee sin explicar o la información es incorrecta.'], 2],
+            ['Claridad y orden', ['Inicio, desarrollo y cierre claros; las ideas se conectan.', 'Orden claro con algunas transiciones bruscas.', 'Ideas sueltas; cuesta seguir la exposición.', 'Sin orden; no se entiende el propósito.']],
+            ['Voz y lenguaje corporal', ['Volumen y ritmo adecuados; mira al grupo todo el tiempo.', 'Se escucha bien; contacto visual intermitente.', 'Voz baja o muy rápida; mira poco al grupo.', 'No se escucha o da la espalda al grupo.']],
+            ['Apoyos visuales', ['Apoyos claros, legibles y que explican el tema.', 'Apoyos legibles con algunos detalles por mejorar.', 'Apoyos con mucho texto o poco relacionados.', 'Sin apoyos o ilegibles.']],
+            ['Manejo del tiempo', ['Usa el tiempo asignado de forma equilibrada.', 'Se pasa o le sobra un poco de tiempo.', 'Termina muy rápido o necesita que lo detengan.', 'No logra presentar lo esencial en el tiempo.']]
+        ]),
+        R('tpl-cientifico', 'Proyecto científico / Feria de ciencias', 'Investigación con pregunta, datos y conclusiones. Ideal para el proyecto integrador.', L4, [
+            ['Pregunta o problema', ['Pregunta clara, investigable y relevante para su comunidad.', 'Pregunta clara pero poco delimitada.', 'Pregunta vaga o difícil de investigar.', 'No plantea una pregunta.']],
+            ['Hipótesis', ['Hipótesis comprobable y justificada con lo investigado.', 'Hipótesis comprobable con poca justificación.', 'Hipótesis confusa o no comprobable.', 'Sin hipótesis.']],
+            ['Metodología', ['Procedimiento detallado, con variables y materiales; se puede repetir.', 'Procedimiento claro con algunos huecos.', 'Procedimiento incompleto.', 'Sin procedimiento.'], 2],
+            ['Datos y análisis', ['Registra datos en tablas o gráficas correctas y los interpreta.', 'Registra datos y hace una interpretación básica.', 'Datos incompletos o sin interpretar.', 'No presenta datos.'], 2],
+            ['Conclusiones', ['Responde la pregunta con base en sus datos y propone acciones.', 'Responde la pregunta con poca relación a los datos.', 'Conclusiones generales que no responden la pregunta.', 'Sin conclusiones.']],
+            ['Comunicación (cartel / exposición)', ['Comunica con claridad a cualquier público.', 'Comunica bien con algunos tecnicismos sin explicar.', 'Comunicación confusa o desordenada.', 'No logra comunicar el proyecto.']]
+        ]),
+        R('tpl-laboratorio', 'Práctica de laboratorio', 'Desempeño durante una práctica experimental.', L4, [
+            ['Seguridad y uso del material', ['Sigue todas las normas y usa el material con cuidado.', 'Sigue las normas con recordatorios mínimos.', 'Necesita varios recordatorios de seguridad.', 'Pone en riesgo su seguridad o la de otros.'], 2],
+            ['Seguimiento del procedimiento', ['Sigue los pasos en orden y con precisión.', 'Sigue los pasos con errores menores.', 'Omite pasos importantes.', 'No sigue el procedimiento.']],
+            ['Registro de observaciones', ['Registra datos, dibujos o fotos completos y ordenados.', 'Registro completo pero poco ordenado.', 'Registro incompleto.', 'No registra.']],
+            ['Análisis y conclusiones', ['Explica lo observado con conceptos de la clase.', 'Explica lo observado de forma general.', 'Describe sin explicar.', 'No analiza.']],
+            ['Colaboración y limpieza', ['Todos participan y dejan el área limpia.', 'Participan casi todos; área limpia.', 'Participación desigual o área sucia.', 'No colaboran ni limpian.']]
+        ]),
+        R('tpl-infografia', 'Infografía o cartel', 'Productos visuales: infografías, carteles, folletos. Útil en diseño gráfico.', L4, [
+            ['Contenido', ['Información correcta, completa y sintetizada.', 'Información correcta con detalles por completar.', 'Información incompleta o con errores menores.', 'Información incorrecta o insuficiente.'], 2],
+            ['Jerarquía visual', ['Título, subtítulos y texto se distinguen; se lee en orden.', 'Jerarquía clara con algunos elementos que compiten.', 'Cuesta saber qué leer primero.', 'Sin jerarquía; todo se ve igual.']],
+            ['Imágenes y gráficos', ['Imágenes nítidas que explican la información.', 'Imágenes adecuadas, algunas solo decorativas.', 'Imágenes de baja calidad o poco relacionadas.', 'Sin imágenes o no se distinguen.']],
+            ['Color y tipografía', ['Paleta y tipografías coherentes y legibles.', 'Buena legibilidad con algún exceso de colores o fuentes.', 'Combinaciones que dificultan la lectura.', 'Ilegible.']],
+            ['Ortografía y fuentes', ['Sin errores y cita sus fuentes.', 'Pocos errores; cita fuentes.', 'Varios errores o sin fuentes.', 'Muchos errores y sin fuentes.']]
+        ]),
+        C('tpl-cuaderno', 'Revisión de cuaderno', 'Lista de cotejo rápida para revisar cuadernos o portafolios.', [
+            'Portada con nombre, grupo y materia', 'Fecha y título en cada actividad', 'Actividades completas del periodo',
+            'Letra legible y orden', 'Correcciones hechas cuando se pidieron', 'Glosario o mapa conceptual del tema'
+        ]),
+        C('tpl-reporte', 'Reporte de práctica', 'Elementos que debe tener un reporte de laboratorio o investigación.', [
+            'Título y datos del equipo', 'Objetivo o pregunta', 'Hipótesis', 'Materiales', 'Procedimiento', 'Resultados (tabla, gráfica o dibujo)', 'Conclusiones', 'Fuentes consultadas'
+        ])
+    ];
+}
+const BUILTIN_IDS = () => builtins().map(t => t.id);
+
+/* ---------- Carga y guardado ---------- */
+function load() {
+    try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) db = JSON.parse(raw);
+        localStorage.setItem(KEY + '_test', '1'); localStorage.removeItem(KEY + '_test');
+    } catch (e) { storageOK = false; }
+    migrate();
+    showStorageBanner();
+}
+function migrate() {
+    db.templates = (db.templates || []).filter(t => !t.locked && !t.builtin);
+    db.templates.unshift(...builtins());
+    db.evaluations = db.evaluations || [];
+    db.phrases = db.phrases || DEFAULT_PHRASES.slice();
+    db.settings = Object.assign({ fbScore: false, momentos: DEFAULT_MOMENTOS.slice(), coCriteria: DEFAULT_CO.slice(), teacher: '', school: '', theme: 'auto', welcomed: false, studentUrl: '' }, db.settings || {});
+    db.groups = db.groups || [];
+    db.evaluations.forEach(e => {
+        if (!e.header.momento) e.header.momento = 'Final';
+        if (e.templateId === 'base-weird-games' && e.snapshot) e.snapshot.criteria.forEach(c => { if (c.weight == null) c.weight = 1; });
+        e.peer = e.peer || {};
+        e.responses = e.responses || [];
+    });
+    db.version = APP_VERSION;
+    applyTheme();
+}
+function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(Object.assign({}, db, { templates: db.templates.filter(t => !t.builtin) }))); storageOK = true; }
+    catch (e) { storageOK = false; }
+    showStorageBanner();
+}
+function showStorageBanner() { document.getElementById('storageBanner').classList.toggle('hidden', storageOK); }
+
+/* ---------- Utilidades ---------- */
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const clone = o => JSON.parse(JSON.stringify(o));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const getTpl = id => db.templates.find(t => t.id === id);
+const fmt1 = v => v == null || isNaN(v) ? '—' : (+v).toFixed(1);
+const gradeClass = v => v == null ? '' : v >= 8 ? 'g-hi' : v >= 6 ? 'g-mid' : 'g-lo';
+const norm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+const splitNames = s => String(s || '').split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
+function rangeLabel(scores) { const s = [...scores].sort((a, b) => a - b); return s.length > 1 ? `${s[0]}–${s[s.length - 1]}` : `${s[0] ?? ''}`; }
+function fmtDate(iso) { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}`; }
+function download(name, content, type) {
+    const blob = new Blob([content], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+function toast(msg) {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    const t = document.createElement('div');
+    t.className = 'toast no-print'; t.setAttribute('role', 'status'); t.textContent = msg;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 2800);
+}
+// Base64 URL-safe con UTF-8
+const b64e = obj => btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = str => JSON.parse(decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/')))));
+
+/* ---------- Diálogos ---------- */
+function dialog({ title = '', text = '', ok = 'Aceptar', cancel = null, danger = false, html = '' }) {
+    return new Promise(resolve => {
+        const m = $('modal');
+        $('modalBody').innerHTML = (title ? `<h3>${esc(title)}</h3>` : '') + (text ? `<div>${esc(text)}</div>` : '') + html;
+        $('modalActions').innerHTML = (cancel ? `<button value="no" class="btn-ghost">${esc(cancel)}</button>` : '') +
+            `<button value="yes" class="${danger ? 'btn-danger' : 'btn-primary'}">${esc(ok)}</button>`;
+        const done = () => { m.removeEventListener('close', done); resolve(m.returnValue === 'yes'); };
+        m.addEventListener('close', done);
+        m.returnValue = 'no';
+        m.showModal();
+        setTimeout(() => m.querySelector('.modal-actions button:last-child').focus(), 20);
+    });
+}
+const ask = (text, opts = {}) => dialog(Object.assign({ text, ok: 'Sí, continuar', cancel: 'Cancelar' }, opts));
+const tell = (text, title = '') => dialog({ title, text, ok: 'Entendido' });
+
+/* ---------- Tema ---------- */
+function applyTheme() {
+    const t = db.settings ? db.settings.theme : 'auto';
+    if (t === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', t);
+}
+
+/* ---------- Navegación ---------- */
+let currentView = 'library';
+async function go(view) {
+    if (currentView === 'editor' && view !== 'editor' && editorDirty &&
+        !(await ask('Tienes cambios sin guardar en la plantilla. ¿Salir sin guardar?', { ok: 'Salir sin guardar', danger: true }))) return;
+    if (currentView === 'editor' && view !== 'editor') editorDirty = false;
+    currentView = view;
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    $('view-' + view).classList.remove('hidden');
+    document.querySelectorAll('#tabs button').forEach(b => {
+        const on = b.dataset.view === view || (view === 'editor' && b.dataset.view === 'library');
+        b.classList.toggle('active', on); b.setAttribute('aria-current', on ? 'page' : 'false');
+    });
+    ({ library: renderLibrary, evaluate: renderEvaluate, history: () => renderHistory(true), group: () => renderGroup(true), settings: renderSettings })[view]?.();
+    window.scrollTo(0, 0);
+}
+document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.view); });
+
+/* =================== INSTRUMENTOS =================== */
+function renderLibrary() {
+    $('welcome').innerHTML = db.settings.welcomed ? '' : `
+    <div class="welcome">
+        <button class="close" type="button" onclick="db.settings.welcomed=true; persist(); renderLibrary()" aria-label="Cerrar bienvenida">✕</button>
+        <h2>Bienvenido al Evaluador Docente</h2>
+        <p>Evalúa proyectos con rúbricas y listas de cotejo, da retroalimentación clara a cada equipo y combina la auto, co y heteroevaluación en una sola calificación.</p>
+        <div class="steps">
+            <div class="step"><b>1 · Elige un instrumento</b>Usa una plantilla o crea la tuya. Puedes dar más peso a los criterios importantes.</div>
+            <div class="step"><b>2 · Evalúa a cada equipo</b>Toca la calificación de cada criterio. La retroalimentación se escribe sola.</div>
+            <div class="step"><b>3 · Suma la voz de los alumnos</b>Comparte un QR para su auto y coevaluación y obtén la calificación final de cada alumno.</div>
+        </div>
+    </div>`;
+    const card = t => {
+        const isR = t.type === 'rubric';
+        const n = isR ? `${t.criteria.length} criterios · ${t.levels.length} niveles` : `${t.items.length} elementos`;
+        const used = db.evaluations.filter(e => e.templateId === t.id).length;
+        const weighted = isR && t.criteria.some(c => (c.weight || 1) !== 1);
+        return `<div class="card">
+            <div class="badges"><span class="badge ${t.type}">${isR ? 'Rúbrica' : 'Lista de cotejo'}</span>
+                ${t.builtin ? '<span class="badge builtin">Incluida</span>' : ''}${weighted ? '<span class="badge weighted">Con pesos</span>' : ''}</div>
+            <h4>${esc(t.name)}</h4>
+            ${t.description ? `<div class="muted">${esc(t.description)}</div>` : ''}
+            <div class="meta">${n} · ${used} evaluación${used === 1 ? '' : 'es'}</div>
+            <div class="btn-row">
+                <button class="btn-primary" type="button" onclick="startEval('${t.id}')">Evaluar</button>
+                ${t.builtin ? '' : `<button class="btn-ghost" type="button" onclick="editTemplate('${t.id}')">Editar</button>`}
+                <button class="btn-ghost" type="button" onclick="duplicateTemplate('${t.id}')">Duplicar</button>
+                <button class="btn-icon" type="button" title="Imprimir en blanco para los alumnos" aria-label="Imprimir en blanco" onclick="printBlank('${t.id}')">🖨</button>
+                <button class="btn-icon" type="button" title="Compartir plantilla (archivo)" aria-label="Compartir plantilla" onclick="exportTemplate('${t.id}')">⤴</button>
+                ${t.builtin ? '' : `<button class="btn-icon" type="button" title="Eliminar" aria-label="Eliminar" onclick="deleteTemplate('${t.id}')">🗑</button>`}
+            </div>
+        </div>`;
+    };
+    const own = db.templates.filter(t => !t.builtin), inc = db.templates.filter(t => t.builtin);
+    $('libraryCards').innerHTML =
+        `<div class="section-label">Mis instrumentos</div>` +
+        (own.length ? `<div class="cards">${own.map(card).join('')}</div>` :
+            `<div class="empty-state"><span class="ico">🧩</span>Aún no tienes instrumentos propios. Duplica una plantilla incluida para adaptarla o crea una nueva.</div>`) +
+        `<div class="section-label">Plantillas incluidas</div><div class="cards">${inc.map(card).join('')}</div>`;
+}
+
+function newTemplate(type) {
+    const t = type === 'rubric'
+        ? { id: uid(), type, name: '', description: '', levels: clone(L4), criteria: [{ name: '', weight: 1, desc: ['', '', '', ''] }] }
+        : { id: uid(), type, name: '', description: '', minFive: true, items: [{ text: '' }] };
+    openEditor(t, true);
+}
+function editTemplate(id) { openEditor(clone(getTpl(id)), false); }
+function duplicateTemplate(id) {
+    const t = clone(getTpl(id));
+    t.id = uid(); delete t.builtin; delete t.locked;
+    t.name = t.name + ' (mi versión)';
+    openEditor(t, true);
+}
+async function deleteTemplate(id) {
+    const t = getTpl(id);
+    const used = db.evaluations.filter(e => e.templateId === id).length;
+    if (!(await ask(`¿Eliminar "${t.name}"?` + (used ? `\nLas ${used} evaluaciones hechas con ella se conservan en el historial.` : ''), { ok: 'Eliminar', danger: true }))) return;
+    db.templates = db.templates.filter(x => x.id !== id);
+    persist(); renderLibrary(); toast('Plantilla eliminada.');
+}
+function exportTemplate(id) {
+    const t = clone(getTpl(id)); delete t.builtin;
+    const data = { app: 'evaluador-docente', kind: 'template', version: APP_VERSION, template: t };
+    download(`plantilla_${t.name.replace(/[^\wáéíóúñ]+/gi, '_').toLowerCase()}.json`, JSON.stringify(data, null, 2), 'application/json');
+    toast('Plantilla descargada. Compártela con tus colegas.');
+}
+function importTemplateFile(input) {
+    const f = input.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = async () => {
+        input.value = '';
+        let d; try { d = JSON.parse(r.result); } catch (e) { return tell('El archivo no es una plantilla válida.'); }
+        const list = d.kind === 'template' && d.template ? [d.template] : Array.isArray(d.templates) ? d.templates : [];
+        const ok = list.filter(t => t && t.name && (t.type === 'rubric' ? Array.isArray(t.criteria) && Array.isArray(t.levels) : Array.isArray(t.items)));
+        if (!ok.length) return tell('No encontré plantillas en ese archivo.');
+        ok.forEach(t => { t.id = uid(); delete t.builtin; delete t.locked; db.templates.push(t); });
+        persist(); renderLibrary(); toast(`${ok.length} plantilla${ok.length > 1 ? 's' : ''} importada${ok.length > 1 ? 's' : ''}.`);
+    };
+    r.readAsText(f);
+}
+
+/* =================== EDITOR =================== */
+let draft = null, editorDirty = false;
+function openEditor(t, isNew) {
+    draft = t; editorDirty = isNew;
+    if (draft.type === 'rubric') draft.criteria.forEach(c => { if (c.weight == null) c.weight = 1; });
+    go('editor').then(() => {
+        $('editorTitle').textContent = (isNew ? 'Nueva ' : 'Editar ') + (t.type === 'rubric' ? 'rúbrica' : 'lista de cotejo');
+        renderEditor();
+    });
+}
+async function cancelEditor() {
+    if (editorDirty && !(await ask('¿Descartar los cambios?', { ok: 'Descartar', danger: true }))) return;
+    editorDirty = false; go('library');
+}
+function setD(path, value) {
+    const keys = path.split('.'); let o = draft;
+    for (let i = 0; i < keys.length - 1; i++) o = o[keys[i]];
+    o[keys[keys.length - 1]] = value; editorDirty = true;
+}
+const inp = (path, value, ph, extra = '') => `<input type="text" value="${esc(value)}" placeholder="${esc(ph)}" oninput="setD('${path}', this.value)" ${extra}>`;
+
+function weightInfo() {
+    const tot = draft.criteria.reduce((s, c) => s + (+c.weight || 1), 0);
+    return c => Math.round((+c.weight || 1) / tot * 100);
+}
+function renderEditor() {
+    const t = draft;
+    let h = `<div class="ed-block"><div class="grid g2">
+        <label class="field">Nombre ${inp('name', t.name, 'Ej. Rúbrica de maqueta', 'aria-required="true"')}</label>
+        <label class="field">Descripción (opcional) ${inp('description', t.description || '', 'Para qué actividad es')}</label>
+    </div></div>`;
+    if (t.type === 'rubric') {
+        const pct = weightInfo();
+        h += `<div class="ed-block">
+            <h3 style="margin-top:0">Niveles de desempeño</h3>
+            <p class="muted">En <b>Calificaciones</b> escribe una o varias separadas por coma. Ej. <b>9, 8</b> te deja elegir entre 9 y 8 al evaluar. Ordénalos del más alto al más bajo.</p>
+            ${t.levels.map((l, j) => `
+            <div class="level-row">
+                <label class="field">Nivel ${j + 1} ${inp(`levels.${j}.name`, l.name, 'Ej. Satisfactorio')}</label>
+                <label class="field">Calificaciones <input type="text" value="${esc(l.scores.join(', '))}" placeholder="9, 8" onchange="setScores(${j}, this.value)"></label>
+                <div class="btn-row">
+                    <button class="btn-icon" type="button" aria-label="Subir nivel" onclick="moveLevel(${j},-1)" ${j === 0 ? 'disabled' : ''}>↑</button>
+                    <button class="btn-icon" type="button" aria-label="Bajar nivel" onclick="moveLevel(${j},1)" ${j === t.levels.length - 1 ? 'disabled' : ''}>↓</button>
+                    <button class="btn-icon" type="button" aria-label="Quitar nivel" onclick="removeLevel(${j})" ${t.levels.length <= 2 ? 'disabled' : ''}>✕</button>
+                </div>
+            </div>`).join('')}
+            <button class="btn-ghost" type="button" onclick="addLevel()">+ Agregar nivel</button>
+        </div>
+        <div class="page-head" style="margin:18px 0 10px"><h3 style="margin:0">Criterios</h3>
+            <span class="muted small">El <b>peso</b> indica cuánto cuenta cada criterio en la calificación. Con todos en 1, valen lo mismo.</span></div>
+        ${t.criteria.map((c, i) => `
+        <div class="ed-block">
+            <div class="crit-head">
+                <span class="num">${i + 1}.</span>
+                ${inp(`criteria.${i}.name`, c.name, 'Nombre del criterio', 'class="cname"')}
+                <label class="weight-field">Peso <input type="number" min="1" max="10" step="1" value="${+c.weight || 1}" onchange="setWeight(${i}, this.value)" aria-label="Peso del criterio"> <span>${pct(c)}%</span></label>
+                <div class="btn-row">
+                    <button class="btn-icon" type="button" aria-label="Subir criterio" onclick="moveCrit(${i},-1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+                    <button class="btn-icon" type="button" aria-label="Bajar criterio" onclick="moveCrit(${i},1)" ${i === t.criteria.length - 1 ? 'disabled' : ''}>↓</button>
+                    <button class="btn-icon" type="button" aria-label="Eliminar criterio" onclick="removeCrit(${i})" ${t.criteria.length <= 1 ? 'disabled' : ''}>🗑</button>
+                </div>
+            </div>
+            <div class="desc-grid">
+                ${t.levels.map((l, j) => `
+                <label class="field">${esc(l.name || 'Nivel ' + (j + 1))} <span class="muted small">(${rangeLabel(l.scores)})</span>
+                    <textarea rows="3" placeholder="¿Cómo se ve este nivel?" oninput="setD('criteria.${i}.desc.${j}', this.value)">${esc(c.desc[j] || '')}</textarea>
+                </label>`).join('')}
+            </div>
+        </div>`).join('')}
+        <button class="btn-primary" type="button" onclick="addCrit()">+ Agregar criterio</button>`;
+    } else {
+        h += `<div class="ed-block">
+            <label style="display:flex;gap:8px;align-items:center;font-size:.92em">
+                <input type="checkbox" ${t.minFive ? 'checked' : ''} onchange="setD('minFive', this.checked)"> Calificación mínima de 5 (aunque no cumpla ningún elemento)
+            </label>
+            <p class="muted" style="margin-bottom:0">Calificación = elementos cumplidos ÷ total × 10.</p>
+        </div>
+        <h3>Elementos a verificar</h3>
+        <div class="ed-block">
+            ${t.items.map((it, i) => `
+            <div class="item-row">
+                <span class="num">${i + 1}.</span>
+                ${inp(`items.${i}.text`, it.text, 'Ej. Incluye portada con nombre y grupo')}
+                <div class="btn-row" style="flex-wrap:nowrap">
+                    <button class="btn-icon" type="button" aria-label="Subir" onclick="moveItem(${i},-1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+                    <button class="btn-icon" type="button" aria-label="Bajar" onclick="moveItem(${i},1)" ${i === t.items.length - 1 ? 'disabled' : ''}>↓</button>
+                    <button class="btn-icon" type="button" aria-label="Eliminar" onclick="removeItem(${i})">🗑</button>
+                </div>
+            </div>`).join('')}
+            <button class="btn-primary" type="button" onclick="addItem()">+ Agregar elemento</button>
+        </div>`;
+    }
+    h += `<div class="sticky-actions btn-row end">
+        <button class="btn-ghost" type="button" onclick="cancelEditor()">Cancelar</button>
+        <button class="btn-ok" type="button" onclick="saveEditor()">Guardar plantilla</button></div>`;
+    $('editorBody').innerHTML = h;
+}
+function swap(arr, i, d) { const j = i + d; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; editorDirty = true; }
+function setScores(j, text) {
+    const nums = [...new Set(text.split(/[,\s/;]+/).filter(x => x !== '').map(Number).filter(n => !isNaN(n) && n >= 0 && n <= 10))];
+    nums.sort((a, b) => b - a);
+    draft.levels[j].scores = nums; editorDirty = true; setTimeout(renderEditor);
+}
+function setWeight(i, v) { draft.criteria[i].weight = Math.min(10, Math.max(1, Math.round(+v) || 1)); editorDirty = true; setTimeout(renderEditor); }
+function addLevel() { draft.levels.push({ name: '', scores: [] }); draft.criteria.forEach(c => c.desc.push('')); editorDirty = true; renderEditor(); }
+async function removeLevel(j) {
+    if (!(await ask('¿Quitar este nivel? Se borrarán sus descripciones en todos los criterios.', { ok: 'Quitar', danger: true }))) return;
+    draft.levels.splice(j, 1); draft.criteria.forEach(c => c.desc.splice(j, 1)); editorDirty = true; renderEditor();
+}
+function moveLevel(j, d) { swap(draft.levels, j, d); draft.criteria.forEach(c => swap(c.desc, j, d)); renderEditor(); }
+function addCrit() { draft.criteria.push({ name: '', weight: 1, desc: draft.levels.map(() => '') }); editorDirty = true; renderEditor(); }
+async function removeCrit(i) { if (!(await ask('¿Eliminar este criterio?', { ok: 'Eliminar', danger: true }))) return; draft.criteria.splice(i, 1); editorDirty = true; renderEditor(); }
+function moveCrit(i, d) { swap(draft.criteria, i, d); renderEditor(); }
+function addItem() { draft.items.push({ text: '' }); editorDirty = true; renderEditor(); }
+function removeItem(i) { draft.items.splice(i, 1); if (!draft.items.length) draft.items.push({ text: '' }); editorDirty = true; renderEditor(); }
+function moveItem(i, d) { swap(draft.items, i, d); renderEditor(); }
+async function saveEditor() {
+    const t = draft;
+    t.name = (t.name || '').trim();
+    if (!t.name) return tell('Ponle un nombre a la plantilla.');
+    if (t.type === 'rubric') {
+        const crits = t.criteria.filter(c => c.name.trim());
+        if (!crits.length) return tell('Agrega al menos un criterio con nombre.');
+        const bad = t.levels.findIndex(l => !l.name.trim() || !l.scores.length);
+        if (bad >= 0) return tell(`El nivel ${bad + 1} necesita nombre y al menos una calificación.`);
+        t.criteria = crits;
+    } else {
+        const items = t.items.filter(it => it.text.trim());
+        if (!items.length) return tell('Agrega al menos un elemento.');
+        t.items = items;
+    }
+    const idx = db.templates.findIndex(x => x.id === t.id);
+    if (idx >= 0) db.templates[idx] = t; else db.templates.push(t);
+    persist(); editorDirty = false; toast('Plantilla guardada.');
+    go('library');
+}
+
+/* =================== EVALUAR =================== */
+let cur = null, curSaved = true;
+
+function blankEval(tplId, keep = {}) {
+    const t = getTpl(tplId) || db.templates[0];
+    return {
+        id: null, templateId: t.id, snapshot: clone(t),
+        header: { tema: keep.tema || '', integrantes: '', grupo: keep.grupo || '', equipo: '', fecha: keep.fecha || today(), momento: keep.momento || momentos()[1] || momentos()[0] },
+        answers: {}, notes: '', peer: {}, responses: []
+    };
+}
+async function startEval(tplId) {
+    if (cur && !curSaved && hasAnswers() && !(await ask('La evaluación actual no se ha guardado. ¿Descartarla?', { ok: 'Descartar', danger: true }))) return;
+    cur = blankEval(tplId); curSaved = true; clearDraft();
+    go('evaluate');
+}
+const hasAnswers = () => cur && (Object.keys(cur.answers).length || cur.header.equipo || cur.header.integrantes || cur.notes);
+async function changeEvalTemplate(id) {
+    if (hasAnswers() && !curSaved && !(await ask('Cambiar de instrumento borrará las calificaciones marcadas. ¿Continuar?'))) { $('evalTemplateSelect').value = cur.templateId; return; }
+    const keep = cur ? cur.header : {};
+    cur = blankEval(id, keep); cur.header.integrantes = keep.integrantes || ''; cur.header.equipo = keep.equipo || '';
+    curSaved = true; renderEvaluate();
+}
+const rosterFor = g => { const gr = db.groups.find(x => norm(x.name) === norm(g)); return gr ? gr.students : []; };
+const members = ev => splitNames(ev.header.integrantes);
+
+function renderEvaluate() {
+    if (!cur || (!cur.id && !getTpl(cur.templateId))) cur = blankEval('base-weird-games');
+    const t = cur.snapshot, hd = cur.header, isR = t.type === 'rubric';
+    const opts = db.templates.map(x => `<option value="${x.id}" ${x.id === cur.templateId ? 'selected' : ''}>${esc(x.name)}</option>`).join('') +
+        (getTpl(cur.templateId) ? '' : `<option selected>${esc(t.name)} (eliminada)</option>`);
+    const hf = (k, label, ph, type = 'text', extra = '') =>
+        `<label class="field">${label}<input type="${type}" value="${esc(hd[k])}" placeholder="${ph}" ${extra} oninput="cur.header['${k}']=this.value; markDirty(); ${k === 'grupo' ? 'renderMemberPick();' : ''}${k === 'grupo' || k === 'equipo' || k === 'integrantes' ? 'updateScore(); render360();' : ''}"></label>`;
+    let h = `
+    ${cur.id ? '<div class="banner info no-print"><span>✎</span><div class="grow">Estás editando una evaluación guardada del historial.</div></div>' : ''}
+    <div class="eval-layout">
+      <div>
+        <div class="panel no-print" style="margin-bottom:14px">
+            <label class="field">Instrumento <select id="evalTemplateSelect" onchange="changeEvalTemplate(this.value)" ${cur.id ? 'disabled' : ''}>${opts}</select></label>
+        </div>
+        <div class="panel" style="margin-bottom:14px">
+            <div class="page-head" style="margin-bottom:10px"><h2>${esc(t.name)}</h2><span id="saveStatus" class="save-status no-print" aria-live="polite"></span></div>
+            <div class="grid g3">
+                ${hf('grupo', 'Grupo', 'Ej. 1° A', 'text', 'list="groupList"')}
+                ${hf('equipo', 'Equipo', 'Ej. Equipo 1')}
+                <label class="field">Momento
+                    <select onchange="cur.header.momento=this.value; markDirty(); updateScore()">${momentos().map(m => `<option ${m === hd.momento ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></label>
+            </div>
+            <div class="grid g2" style="margin-top:12px">
+                ${hf('tema', 'Tema del proyecto', 'Escribe el tema…')}
+                ${hf('fecha', 'Fecha', '', 'date')}
+            </div>
+            <div style="margin-top:12px">
+                ${hf('integrantes', 'Integrantes (separados por coma)', 'Nombres de los alumnos', 'text', 'id="intInput"')}
+                <div id="memberPick" class="member-pick no-print"></div>
+            </div>
+            <datalist id="groupList">${db.groups.map(g => `<option value="${esc(g.name)}">`).join('')}</datalist>
+        </div>
+        <div id="compareNote" class="compare-note no-print hidden"></div>`;
+    if (isR) {
+        h += t.criteria.map((c, i) => `
+        <div class="crit" style="--n:${t.levels.length}">
+            <div class="crit-top">
+                <div><h4>${esc(c.name)}${(c.weight || 1) !== 1 ? `<span class="w">peso ×${c.weight}</span>` : ''}</h4><span class="prev-hint no-print" id="prev-${i}"></span></div>
+                <span class="crit-score empty" id="score-${i}">—</span>
+            </div>
+            <div class="levels" role="radiogroup" aria-label="${esc(c.name)}">${t.levels.map((l, j) => `
+                <div class="level" id="lv-${i}-${j}">
+                    <div class="lname">${esc(l.name)} <small>(${rangeLabel(l.scores)})</small></div>
+                    <div class="ldesc">${esc(c.desc[j] || '')}</div>
+                    <div class="chips">${l.scores.map(v => `
+                        <label class="chip" title="${esc(l.name)}: ${v}"><input type="radio" name="c${i}" value="${v}"
+                            ${cur.answers[i] && cur.answers[i].v === v && cur.answers[i].l === j ? 'checked' : ''}
+                            onchange="cur.answers[${i}]={v:${v},l:${j}}; markDirty(); updateScore()" aria-label="${esc(c.name)}: ${esc(l.name)} ${v}"><span>${v}</span></label>`).join('')}
+                    </div>
+                </div>`).join('')}
+            </div>
+            <div class="feedback" id="fb-${i}"></div>
+        </div>`).join('');
+    } else {
+        h += `<div>${t.items.map((it, i) => `
+            <label class="check-item ${cur.answers[i] ? 'done' : ''}">
+                <input type="checkbox" ${cur.answers[i] ? 'checked' : ''} onchange="cur.answers[${i}]=this.checked; this.parentElement.classList.toggle('done', this.checked); markDirty(); updateScore()">
+                <span>${esc(it.text)}</span></label>`).join('')}</div>`;
+    }
+    h += `
+        <div class="panel" style="margin-top:14px">
+            <label class="field" for="notesBox">Comentarios para el equipo <span class="muted small" style="font-weight:400">(aparecen en la hoja de retroalimentación)</span></label>
+            <div class="phrases no-print">${db.phrases.map((p, k) => `<button type="button" class="phrase" onclick="addPhrase(${k})">+ ${esc(p)}</button>`).join('')}</div>
+            <textarea id="notesBox" rows="4" placeholder="Escribe aquí comentarios adicionales…" oninput="cur.notes=this.value; markDirty()">${esc(cur.notes)}</textarea>
+        </div>
+        <div class="panel" style="margin-top:14px" id="panel360"></div>
+      </div>
+      <aside class="side">
+        <div class="score-card">
+            <div class="lbl">${isR ? 'Calificación del equipo' : 'Calificación'}</div>
+            <div class="big" id="total-score">—</div>
+            <div class="sub" id="progress"></div>
+            <div class="bar"><i id="progressBar"></i></div>
+        </div>
+        <div class="panel no-print">
+            <div class="btn-row" style="flex-direction:column;align-items:stretch">
+                <button class="btn-ok" type="button" onclick="saveEval(false)">💾 Guardar</button>
+                ${cur.id ? '' : '<button class="btn-primary" type="button" onclick="saveEval(true)">💾 Guardar y siguiente equipo</button>'}
+                <button class="btn-ghost" type="button" onclick="printFeedback([cur])">🖨 Hoja de retroalimentación</button>
+                <button class="btn-ghost" type="button" onclick="window.print()">🖨 Evaluación completa</button>
+                <button class="btn-ghost" type="button" onclick="newEval()">✚ Nueva evaluación</button>
+            </div>
+            <label class="muted small" style="display:flex;gap:6px;margin-top:12px;cursor:pointer">
+                <input type="checkbox" ${db.settings.fbScore ? 'checked' : ''} onchange="db.settings.fbScore=this.checked; persist()"> Mostrar calificaciones en la hoja de retroalimentación
+            </label>
+        </div>
+      </aside>
+    </div>`;
+    $('evalBody').innerHTML = h;
+    renderMemberPick(); updateScore(); updateStatus(); render360();
+}
+function renderMemberPick() {
+    const el = $('memberPick'); if (!el) return;
+    const roster = rosterFor(cur.header.grupo);
+    if (!roster.length) { el.innerHTML = db.groups.length ? '' : `<span class="muted small">Tip: registra tus grupos en <a href="#" onclick="go('settings'); setTimeout(()=>showSettings('groups'));return false">Ajustes → Grupos</a> para elegir a los integrantes con un toque.</span>`; return; }
+    const sel = new Set(members(cur).map(norm));
+    const used = new Set(db.evaluations.filter(e => e.id !== cur.id && norm(e.header.grupo) === norm(cur.header.grupo) && e.templateId === cur.templateId && e.header.momento === cur.header.momento)
+        .flatMap(e => members(e).map(norm)));
+    el.innerHTML = roster.map((n, k) => `<button type="button" class="${sel.has(norm(n)) ? 'on' : ''}" onclick="toggleMember(${k})" title="${used.has(norm(n)) ? 'Ya evaluado en otro equipo en este momento' : ''}">${esc(n)}${used.has(norm(n)) && !sel.has(norm(n)) ? ' ✓' : ''}</button>`).join('');
+}
+function toggleMember(k) {
+    const n = rosterFor(cur.header.grupo)[k];
+    let list = members(cur);
+    list = list.some(x => norm(x) === norm(n)) ? list.filter(x => norm(x) !== norm(n)) : [...list, n];
+    cur.header.integrantes = list.join(', ');
+    $('intInput').value = cur.header.integrantes;
+    markDirty(); renderMemberPick(); render360();
+}
+
+function computeScore(ev) {
+    const t = ev.snapshot;
+    if (t.type === 'rubric') {
+        let sw = 0, sv = 0, done = 0;
+        t.criteria.forEach((c, i) => { const a = ev.answers[i]; if (a) { const w = +c.weight || 1; sw += w; sv += a.v * w; done++; } });
+        return { score: sw ? sv / sw : null, done, total: t.criteria.length };
+    }
+    const total = t.items.length, done = t.items.filter((_, i) => ev.answers[i]).length;
+    let s = total ? done / total * 10 : 0;
+    if (t.minFive) s = Math.max(5, s);
+    return { score: s, done, total };
+}
+const teamKey = e => norm(e.header.grupo) + '|' + norm(e.header.equipo);
+const sameTeam = (a, b) => a.templateId === b.templateId && norm(b.header.equipo) && teamKey(a) === teamKey(b);
+function prevEval(ev) {
+    return db.evaluations.filter(e => e.id !== ev.id && sameTeam(e, ev) && momIdx(e.header.momento) < momIdx(ev.header.momento))
+        .sort((a, b) => momIdx(b.header.momento) - momIdx(a.header.momento) || (b.header.fecha || '').localeCompare(a.header.fecha || ''))[0];
+}
+function ansByName(ev, name) {
+    const t = ev.snapshot;
+    const i = t.type === 'rubric' ? t.criteria.findIndex(c => c.name === name) : t.items.findIndex(it => it.text === name);
+    return i < 0 ? undefined : ev.answers[i];
+}
+function feedbackFor(t, i, a) {
+    const c = t.criteria[i], lvl = t.levels[a.l];
+    const next = a.l > 0 ? { name: t.levels[a.l - 1].name, desc: c.desc[a.l - 1] } : null;
+    const upInLevel = Math.max(...lvl.scores) > a.v;
+    return { level: lvl.name, logra: c.desc[a.l] || '',
+        next: next ? next.desc : (upInLevel ? 'Consolidar lo logrado en todo el trabajo para alcanzar la calificación máxima.' : 'Nivel máximo alcanzado: mantenerlo y apoyar a otros compañeros.'),
+        nextName: next ? next.name : '' };
+}
+function deltaHTML(now, before) {
+    if (before == null || now == null) return '';
+    const d = now - before;
+    if (d > 0) return `<span class="delta up">▲ +${+d.toFixed(1)}</span>`;
+    if (d < 0) return `<span class="delta down">▼ ${+d.toFixed(1)}</span>`;
+    return `<span class="delta same">= igual</span>`;
+}
+function addPhrase(k) {
+    cur.notes = (cur.notes.trim() ? cur.notes.trim() + '\n' : '') + db.phrases[k];
+    $('notesBox').value = cur.notes; markDirty();
+}
+function updateScore() {
+    const t = cur.snapshot, prev = prevEval(cur);
+    if (t.type === 'rubric') t.criteria.forEach((c, i) => {
+        const a = cur.answers[i], out = $('score-' + i);
+        out.textContent = a ? a.v : '—'; out.classList.toggle('empty', !a);
+        t.levels.forEach((_, j) => $(`lv-${i}-${j}`).classList.toggle('selected', !!a && a.l === j));
+        const fb = $('fb-' + i);
+        if (a) { const f = feedbackFor(t, i, a); fb.innerHTML = `<div><b>✔ Ya logra:</b> ${esc(f.logra)}</div><div class="next"><b>➜ Siguiente paso${f.nextName ? ' (' + esc(f.nextName) + ')' : ''}:</b> ${esc(f.next)}</div>`; }
+        else fb.innerHTML = '';
+        const pa = prev && ansByName(prev, c.name);
+        $('prev-' + i).innerHTML = pa ? `${esc(prev.header.momento)}: ${pa.v} ${a ? deltaHTML(a.v, pa.v) : ''}` : '';
+    });
+    const r = computeScore(cur);
+    $('total-score').textContent = fmt1(r.score);
+    $('progress').innerHTML = (t.type === 'rubric' ? `${r.done} de ${r.total} criterios` : `${r.done} de ${r.total} elementos cumplidos`) +
+        (prev && prev.score != null ? ` · ${esc(prev.header.momento)}: ${fmt1(prev.score)}` : '');
+    $('progressBar').style.width = (r.total ? r.done / r.total * 100 : 0) + '%';
+    const note = $('compareNote');
+    note.classList.toggle('hidden', !prev);
+    if (prev) note.innerHTML = `📈 Comparando con <b>${esc(prev.header.momento)}</b> (${fmtDate(prev.header.fecha)}) de este equipo: calificación ${fmt1(prev.score)}. Junto a cada criterio verás cuánto sacó entonces.`;
+    if (document.getElementById('panel360')) render360(true);
+}
+function markDirty() { curSaved = false; updateStatus(); saveDraft(); }
+function updateStatus() {
+    const el = $('saveStatus'); if (!el) return;
+    el.textContent = curSaved ? (cur.id ? '✓ Guardada' : '') : '● Sin guardar';
+    el.className = 'save-status no-print ' + (curSaved ? 'saved' : 'dirty');
+}
+
+/* ---------- Borrador automático ---------- */
+let draftTimer = null;
+function saveDraft() {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(() => { try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ at: new Date().toISOString(), cur })); } catch (e) { } }, 400);
+}
+function clearDraft() { clearTimeout(draftTimer); try { localStorage.removeItem(DRAFT_KEY); } catch (e) { } $('draftBanner').classList.add('hidden'); }
+function checkDraft() {
+    let d = null; try { d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { }
+    if (!d || !d.cur) return;
+    const c = d.cur, n = Object.keys(c.answers || {}).length;
+    if (!n && !c.header.equipo && !c.notes) return clearDraft();
+    $('draftText').innerHTML = `Hay una evaluación sin guardar de <b>${esc(c.header.equipo || 'un equipo')}</b>${c.header.grupo ? ' (' + esc(c.header.grupo) + ')' : ''} con ${n} respuesta${n === 1 ? '' : 's'}, del ${new Date(d.at).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })}.`;
+    $('draftBanner').classList.remove('hidden');
+}
+function restoreDraft() {
+    try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY)); cur = d.cur; cur.peer = cur.peer || {}; cur.responses = cur.responses || []; curSaved = false; } catch (e) { return; }
+    $('draftBanner').classList.add('hidden');
+    go('evaluate').then(updateStatus);
+}
+function discardDraft() { clearDraft(); toast('Borrador descartado.'); }
+
+async function saveEval(next, silent) {
+    const r = computeScore(cur);
+    if (!silent) {
+        if (!r.done && cur.snapshot.type === 'rubric') return tell('Marca al menos un criterio antes de guardar.');
+        if (!cur.header.equipo.trim() && !cur.header.integrantes.trim() &&
+            !(await ask('No escribiste equipo ni integrantes. ¿Guardar así?', { ok: 'Guardar así' }))) return false;
+        if (cur.snapshot.type === 'rubric' && r.done < r.total &&
+            !(await ask(`Solo calificaste ${r.done} de ${r.total} criterios. ¿Guardar de todos modos?`, { ok: 'Guardar' }))) return false;
+        const dup = db.evaluations.find(e => e.id !== cur.id && sameTeam(e, cur) && e.header.momento === cur.header.momento);
+        if (dup && !(await ask(`Ya existe una evaluación de "${cur.header.equipo}" (${cur.header.grupo}) en ${cur.header.momento}.\nSi querías registrar su progreso, cambia el momento de evaluación.\n\n¿Guardar otra de todos modos?`, { ok: 'Guardar otra' }))) return false;
+    }
+    const now = new Date().toISOString();
+    const rec = clone(cur); rec.score = r.score; rec.updatedAt = now;
+    if (!rec.id) { rec.id = uid(); rec.createdAt = now; db.evaluations.push(rec); }
+    else { const i = db.evaluations.findIndex(e => e.id === rec.id); if (i >= 0) db.evaluations[i] = rec; else db.evaluations.push(rec); }
+    persist(); clearDraft();
+    if (next) {
+        cur = blankEval(cur.templateId, cur.header); curSaved = true; renderEvaluate();
+        toast('Guardada. Listo para el siguiente equipo.');
+    } else {
+        cur.id = rec.id; cur.createdAt = rec.createdAt; curSaved = true;
+        if (!silent) { renderEvaluate(); toast('Evaluación guardada en el historial.'); }
+    }
+    return true;
+}
+async function newEval() {
+    if (!curSaved && hasAnswers() && !(await ask('¿Descartar la evaluación actual sin guardar?', { ok: 'Descartar', danger: true }))) return;
+    cur = blankEval(getTpl(cur.templateId) ? cur.templateId : 'base-weird-games', cur.id ? {} : cur.header); curSaved = true; clearDraft();
+    renderEvaluate();
+}
+
+/* =================== 360°: AUTO Y COEVALUACIÓN =================== */
+const coScaled = avg => avg == null ? null : 5 + avg / 2 * 5;     // 0–2 → 5–10
+function peerResults(ev) {
+    const ms = members(ev), score = ev.score != null ? ev.score : computeScore(ev).score;
+    return ms.map(name => {
+        const p = ev.peer[name] || {};
+        const mine = (ev.responses || []).filter(r => norm(r.by) === norm(name)).pop();
+        const auto = p.auto != null && p.auto !== '' ? +p.auto : (mine ? mine.auto : null);
+        const got = (ev.responses || []).filter(r => norm(r.by) !== norm(name))
+            .map(r => { const k = Object.keys(r.co || {}).find(x => norm(x) === norm(name)); return k ? r.co[k] : null; }).filter(Boolean);
+        const nRaters = got.length, received = got.flat().filter(v => v != null);
+        const coAvgResp = received.length ? received.reduce((a, b) => a + b, 0) / received.length : null;
+        const coAvg = p.co != null && p.co !== '' ? +p.co : coAvgResp;
+        const hetero = p.hetero != null && p.hetero !== '' ? +p.hetero : score;
+        const parts = [coScaled(coAvg), auto, hetero].filter(v => v != null && !isNaN(v));
+        return { name, auto, autoSrc: p.auto != null && p.auto !== '' ? 'manual' : mine ? 'alumno' : '', coAvg, coSrc: p.co != null && p.co !== '' ? 'manual' : nRaters ? `${nRaters} compañero${nRaters > 1 ? 's' : ''}` : '',
+            co: coScaled(coAvg), hetero, final: parts.length ? parts.reduce((a, b) => a + b, 0) / parts.length : null, parts: parts.length };
+    });
+}
+function setPeer(ri, field, v) {
+    const name = members(cur)[ri];
+    cur.peer[name] = cur.peer[name] || {};
+    const n = v === '' ? null : Math.max(field === 'co' ? 0 : 0, Math.min(field === 'co' ? 2 : 10, +v));
+    cur.peer[name][field] = isNaN(n) ? null : n;
+    markDirty(); setTimeout(() => render360(true));
+}
+function render360(onlyTable) {
+    const el = $('panel360'); if (!el) return;
+    const ms = members(cur);
+    const rows = peerResults(Object.assign({}, cur, { score: computeScore(cur).score }));
+    const table = !ms.length ? `<div class="empty-state" style="padding:20px"><span class="ico">🧑‍🤝‍🧑</span>Escribe o elige a los integrantes del equipo para calcular la calificación de cada alumno.</div>` : `
+        <div style="overflow-x:auto"><table class="t360"><thead><tr><th>Alumno</th><th>Autoevaluación<br>(5–10)</th><th>Coevaluación<br>(0–2)</th><th>Docente<br>(5–10)</th><th>Final</th></tr></thead><tbody>
+        ${rows.map((r, ri) => `<tr>
+            <td><b>${esc(r.name)}</b></td>
+            <td><input type="number" min="5" max="10" step="0.5" value="${cur.peer[r.name]?.auto ?? ''}" placeholder="${r.autoSrc === 'alumno' ? fmt1(r.auto) : '—'}" onchange="setPeer(${ri},'auto',this.value)" aria-label="Autoevaluación de ${esc(r.name)}"><span class="src">${r.autoSrc === 'alumno' ? 'del alumno' : ''}</span></td>
+            <td><input type="number" min="0" max="2" step="0.1" value="${cur.peer[r.name]?.co ?? ''}" placeholder="${r.coAvg != null && r.coSrc !== 'manual' ? r.coAvg.toFixed(1) : '—'}" onchange="setPeer(${ri},'co',this.value)" aria-label="Coevaluación de ${esc(r.name)}"><span class="src">${r.co != null ? '= ' + fmt1(r.co) + (r.coSrc && r.coSrc !== 'manual' ? ' · ' + r.coSrc : '') : ''}</span></td>
+            <td><input type="number" min="5" max="10" step="0.1" value="${cur.peer[r.name]?.hetero ?? ''}" placeholder="${fmt1(r.hetero)}" onchange="setPeer(${ri},'hetero',this.value)" aria-label="Calificación docente de ${esc(r.name)}"><span class="src">${cur.peer[r.name]?.hetero != null ? 'ajustada' : 'del equipo'}</span></td>
+            <td class="final"><span class="grade ${gradeClass(r.final)}">${fmt1(r.final)}</span>${r.parts < 3 && r.final != null ? `<span class="src">con ${r.parts} de 3</span>` : ''}</td>
+        </tr>`).join('')}</tbody></table></div>
+        <p class="muted small" style="margin:8px 0 0">Final = promedio de autoevaluación, coevaluación (convertida a 5–10) y calificación docente; cada una vale 1/3. Si falta alguna, se promedian las que haya. Deja en blanco para usar lo que respondieron los alumnos.</p>`;
+    if (onlyTable && $('t360wrap')) { $('t360wrap').innerHTML = table; return; }
+    el.innerHTML = `
+        <div class="page-head" style="margin-bottom:10px"><div><h3 style="margin:0">Evaluación 360° por alumno</h3>
+            <span class="muted small">Auto y coevaluación de los integrantes + tu calificación.</span></div>
+            <div class="btn-row no-print">
+                <button class="btn-soft" type="button" onclick="showStudentQR()" ${ms.length < 1 ? 'disabled' : ''}>📱 QR para los alumnos</button>
+                <button class="btn-ghost" type="button" onclick="pasteResponses()">⬇ Recibir respuestas</button>
+            </div></div>
+        <div id="t360wrap">${table}</div>
+        <div id="qrArea" class="no-print"></div>
+        ${(cur.responses || []).length ? `<p class="muted small no-print" style="margin-top:8px">Respuestas recibidas: ${cur.responses.map(r => esc(r.by)).join(', ')}.</p>` : ''}`;
+}
+function baseUrl() {
+    if (/^https?:/.test(location.protocol)) return location.origin + location.pathname;
+    return (db.settings.studentUrl || '').trim();
+}
+function makeQR(text, cell = 5) {
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+    for (const lvl of ['M', 'L']) { try { const q = qrcode(0, lvl); q.addData(text, 'Byte'); q.make(); return q.createDataURL(cell, 3); } catch (e) { } }
+    return null;
+}
+async function showStudentQR() {
+    const ms = members(cur);
+    if (ms.length < 2 && !(await ask('El equipo tiene un solo integrante: solo podrá autoevaluarse. ¿Continuar?'))) return;
+    if (!cur.id || !curSaved) { const ok = await saveEval(false, true); if (!ok) return; renderEvaluate(); }
+    const base = baseUrl();
+    if (!base) {
+        return tell('Para que los alumnos respondan desde su celular, el evaluador debe estar publicado en internet (por ejemplo, en GitHub Pages).\n\nEscribe su dirección en Ajustes → Perfil → "Dirección pública del evaluador" y vuelve a intentarlo.', 'Falta la dirección pública');
+    }
+    const payload = { k: cur.id, g: cur.header.grupo, e: cur.header.equipo, t: cur.header.tema, m: ms, c: db.settings.coCriteria, n: cur.snapshot.name, d: db.settings.teacher };
+    const url = base + '#a=' + b64e(payload);
+    const img = makeQR(url, 5);
+    $('qrArea').innerHTML = `<div class="qr-box">
+        ${img ? `<img src="${img}" alt="Código QR para que el equipo se autoevalúe y coevalúe">` : ''}
+        <div class="grow"><b>Pide a cada integrante que escanee este código.</b>
+            <p class="muted small" style="margin:6px 0">Cada alumno elige su nombre, se autoevalúa y evalúa a sus compañeros. Al terminar le aparece un QR con sus respuestas: escanéalo con tu celular o pídele que te envíe el código y pégalo en <b>Recibir respuestas</b>.</p>
+            <div class="btn-row"><button class="btn-ghost" type="button" onclick="copyText('${url}')">Copiar enlace</button>
+            <button class="btn-ghost" type="button" onclick="window.open('${url}','_blank')">Probar como alumno</button></div></div></div>`;
+}
+async function copyText(s) {
+    try { await navigator.clipboard.writeText(s); toast('Copiado.'); }
+    catch (e) { await dialog({ title: 'Copia este texto', html: `<div class="code-out">${esc(s)}</div>` }); }
+}
+async function pasteResponses() {
+    const ok = await dialog({ title: 'Recibir respuestas de los alumnos', ok: 'Agregar', cancel: 'Cancelar',
+        html: `<p class="muted small">Pega uno o varios códigos (o enlaces) que te enviaron los alumnos, uno por renglón.</p><textarea id="respBox" rows="5" style="width:100%"></textarea>` });
+    if (!ok) return;
+    const n = importResponses($('respBox').value);
+    if (n.added) { if (cur && n.ids.includes(cur.id)) { cur = clone(db.evaluations.find(e => e.id === cur.id)); curSaved = true; renderEvaluate(); } toast(`${n.added} respuesta${n.added > 1 ? 's' : ''} agregada${n.added > 1 ? 's' : ''}.`); }
+    else tell(n.msg || 'No encontré respuestas válidas.');
+}
+function importResponses(text) {
+    const codes = String(text).split(/\s+/).map(s => s.includes('#r=') ? s.split('#r=')[1] : s).filter(s => s.length > 20);
+    let added = 0, ids = [], msg = '';
+    codes.forEach(c => {
+        let r; try { r = b64d(c); } catch (e) { return; }
+        if (!r || !r.k || !r.by) return;
+        const ev = db.evaluations.find(e => e.id === r.k);
+        if (!ev) { msg = 'Las respuestas son de una evaluación que no está en este navegador. Recíbelas en el mismo dispositivo donde generaste el QR.'; return; }
+        ev.responses = (ev.responses || []).filter(x => norm(x.by) !== norm(r.by));
+        ev.responses.push({ by: r.by, auto: r.a, co: r.c || {}, at: new Date().toISOString() });
+        added++; ids.push(ev.id);
+    });
+    if (added) persist();
+    return { added, ids, msg };
+}
+
+/* =================== MODO ALUMNO =================== */
+let stu = null;
+function renderStudent(payload) {
+    stu = { p: payload, me: null, auto: null, co: {} };
+    document.querySelector('.topbar #tabs').classList.add('hidden');
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    $('view-student').classList.remove('hidden');
+    drawStudent();
+}
+function drawStudent() {
+    const p = stu.p;
+    let h = `<div class="hero"><div class="small" style="opacity:.8">Auto y coevaluación${p.d ? ' · ' + esc(p.d) : ''}</div>
+        <h2>${esc(p.n || 'Proyecto en equipo')}</h2>
+        <div style="opacity:.9;margin-top:4px">${esc(p.g || '')} ${p.e ? '· ' + esc(p.e) : ''}${p.t ? '<br>Tema: ' + esc(p.t) : ''}</div></div>`;
+    if (!stu.me) {
+        h += `<div class="panel"><h3>¿Quién eres?</h3><div class="btn-row" style="flex-direction:column;align-items:stretch">
+            ${p.m.map((n, k) => `<button class="btn-ghost" type="button" style="justify-content:flex-start;padding:14px" onclick="stu.me=${k}; drawStudent()">${esc(n)}</button>`).join('')}</div></div>`;
+    } else if (stu.done) {
+        const code = b64e({ k: p.k, by: p.m[stu.me], a: stu.auto, c: stu.co });
+        const url = (location.origin + location.pathname) + '#r=' + code;
+        const img = makeQR(url, 5);
+        h += `<div class="panel" style="text-align:center"><h3>¡Listo, ${esc(p.m[stu.me].split(' ')[0])}! 🎉</h3>
+            <p>Muestra este código a tu maestro para que lo escanee.</p>
+            ${img ? `<img src="${img}" alt="Código QR con tus respuestas" style="width:240px;max-width:80%;image-rendering:pixelated;background:#fff;padding:6px;border-radius:10px">` : ''}
+            <p class="muted small">¿No puede escanearlo? Copia el código y envíaselo.</p>
+            <div class="code-out" style="text-align:left">${code}</div>
+            <div class="btn-row center" style="margin-top:10px"><button class="btn-primary" type="button" onclick="copyText('${code}')">Copiar código</button>
+            <button class="btn-ghost" type="button" onclick="stu.done=false; drawStudent()">Corregir respuestas</button></div></div>`;
+    } else {
+        const others = p.m.map((n, k) => ({ n, k })).filter(x => x.k !== stu.me);
+        h += `<div class="panel"><h3>1 · Tu autoevaluación</h3><p class="muted small">Con honestidad: ¿qué calificación crees que mereces por tu trabajo en este proyecto?</p>
+            <div class="chips">${[5, 6, 7, 8, 9, 10].map(v => `<label class="chip"><input type="radio" name="auto" ${stu.auto === v ? 'checked' : ''} onchange="stu.auto=${v}"><span>${v}</span></label>`).join('')}</div></div>`;
+        if (others.length) h += `<div class="panel"><h3>2 · Evalúa a tus compañeros</h3><p class="muted small">¿Con qué frecuencia cada compañero hizo lo siguiente?</p>
+            ${others.map(o => `<div style="margin-top:14px"><b>${esc(o.n)}</b>
+                ${p.c.map((crit, ci) => `<div class="rate-row"><span class="small">${esc(crit)}</span><span class="rate">
+                    ${CO_SCALE.map(s => `<label><input type="radio" name="co${o.k}_${ci}" ${stu.co[o.n] && stu.co[o.n][ci] === s.v ? 'checked' : ''} onchange="setCo('${o.k}',${ci},${s.v})"><span>${s.t}</span></label>`).join('')}
+                </span></div>`).join('')}</div>`).join('')}</div>`;
+        h += `<div class="btn-row center" style="margin:18px 0"><button class="btn-ghost" type="button" onclick="stu.me=null; drawStudent()">← Cambiar nombre</button>
+            <button class="btn-primary" type="button" onclick="finishStudent()">Terminar</button></div>`;
+    }
+    $('studentBody').innerHTML = h;
+    window.scrollTo(0, 0);
+}
+function setCo(k, ci, v) { const n = stu.p.m[+k]; stu.co[n] = stu.co[n] || stu.p.c.map(() => null); stu.co[n][ci] = v; }
+function finishStudent() {
+    if (stu.auto == null) return tell('Elige tu autoevaluación.');
+    const others = stu.p.m.filter((_, k) => k !== stu.me);
+    const missing = others.filter(n => !stu.co[n] || stu.co[n].some(v => v == null));
+    if (missing.length) return tell('Te falta evaluar a: ' + missing.join(', ') + '.');
+    stu.done = true; drawStudent();
+}
+
+/* =================== HISTORIAL =================== */
+function renderHistory(refresh) {
+    const fG = $('fGroup'), fT = $('fTemplate'), fM = $('fMomento');
+    if (refresh) {
+        const g = fG.value, tv = fT.value, mv = fM.value;
+        const groups = [...new Set(db.evaluations.map(e => e.header.grupo.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+        fG.innerHTML = '<option value="">Todos</option>' + groups.map(x => `<option>${esc(x)}</option>`).join('');
+        const tpls = {}; db.evaluations.forEach(e => tpls[e.templateId] = e.snapshot.name);
+        fT.innerHTML = '<option value="">Todos</option>' + Object.entries(tpls).map(([id, n]) => `<option value="${id}">${esc(n)}</option>`).join('');
+        fM.innerHTML = '<option value="">Todos</option>' + momentos().map(m => `<option>${esc(m)}</option>`).join('');
+        fG.value = groups.includes(g) ? g : ''; fT.value = tpls[tv] ? tv : ''; fM.value = mv;
+    }
+    const list = filteredEvals();
+    if (!list.length) {
+        $('historyStats').innerHTML = '';
+        $('historyBody').innerHTML = `<div class="empty-state"><span class="ico">🗂</span>${db.evaluations.length ? 'No hay evaluaciones con esos filtros.' : 'Aún no hay evaluaciones guardadas. Ve a <b>Evaluar</b> para empezar.'}</div>`;
+        return;
+    }
+    const scores = list.map(e => e.score).filter(s => s != null);
+    const avg = scores.reduce((a, b) => a + b, 0) / (scores.length || 1);
+    const bins = [5, 6, 7, 8, 9, 10].map(b => scores.filter(s => Math.min(10, Math.max(5, Math.floor(s))) === b).length);
+    const mx = Math.max(1, ...bins);
+    $('historyStats').innerHTML = `<div class="grid" style="grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;margin-bottom:14px">
+        <div class="stats" style="margin:0">
+            <div class="stat"><b>${list.length}</b>evaluaciones</div>
+            <div class="stat"><b>${avg.toFixed(1)}</b>promedio</div>
+            <div class="stat"><b>${fmt1(Math.max(...scores))}</b>más alta</div>
+            <div class="stat"><b>${fmt1(Math.min(...scores))}</b>más baja</div>
+        </div>
+        <div class="panel" style="padding:10px 14px"><div class="muted small">Distribución de calificaciones</div>
+            <div class="histo" role="img" aria-label="Distribución de calificaciones">${bins.map((n, k) => `<div><span>${n || ''}</span><i style="height:${n / mx * 60}px"></i><span>${k + 5}</span></div>`).join('')}</div></div>
+    </div>`;
+    $('historyBody').innerHTML = `<div class="table-wrap"><table class="data"><thead><tr>
+        <th>Fecha</th><th>Grupo</th><th>Equipo</th><th>Tema / Integrantes</th><th>Instrumento</th><th>Calif.</th><th></th></tr></thead><tbody>
+        ${list.map(e => `<tr>
+            <td>${fmtDate(e.header.fecha)}<div class="muted small">${esc(e.header.momento)}</div></td>
+            <td>${esc(e.header.grupo)}</td>
+            <td><b>${esc(e.header.equipo)}</b></td>
+            <td>${esc(e.header.tema)}<div class="muted small">${esc(e.header.integrantes)}${(e.responses || []).length ? ` · 📱 ${e.responses.length}` : ''}</div></td>
+            <td class="muted small">${esc(e.snapshot.name)}</td>
+            <td><span class="grade ${gradeClass(e.score)}">${fmt1(e.score)}</span></td>
+            <td><div class="btn-row" style="flex-wrap:nowrap">
+                <button class="btn-icon" type="button" onclick="openEval('${e.id}')">Abrir</button>
+                <button class="btn-icon" type="button" title="Progreso del equipo" aria-label="Progreso del equipo" onclick="showTeamProgress('${e.id}')">📈</button>
+                <button class="btn-icon" type="button" title="Eliminar" aria-label="Eliminar" onclick="deleteEval('${e.id}')">🗑</button></div></td>
+        </tr>`).join('')}</tbody></table></div>`;
+}
+function filteredEvals() {
+    const g = $('fGroup').value, t = $('fTemplate').value, m = $('fMomento').value, q = norm($('fSearch').value);
+    return db.evaluations
+        .filter(e => (!g || e.header.grupo.trim() === g) && (!t || e.templateId === t) && (!m || e.header.momento === m))
+        .filter(e => !q || norm([e.header.equipo, e.header.integrantes, e.header.tema].join(' ')).includes(q))
+        .sort((a, b) => (b.header.fecha || '').localeCompare(a.header.fecha || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+}
+async function openEval(id) {
+    if (cur && !curSaved && hasAnswers() && !(await ask('La evaluación actual no se ha guardado. ¿Descartarla?', { ok: 'Descartar', danger: true }))) return;
+    cur = clone(db.evaluations.find(e => e.id === id)); curSaved = true; clearDraft();
+    go('evaluate');
+}
+async function deleteEval(id) {
+    const e = db.evaluations.find(x => x.id === id);
+    if (!(await ask(`¿Eliminar la evaluación de ${e.header.equipo || 'este equipo'} (${e.header.grupo})?`, { ok: 'Eliminar', danger: true }))) return;
+    db.evaluations = db.evaluations.filter(x => x.id !== id);
+    if (cur && cur.id === id) cur = null;
+    persist(); renderHistory(true); toast('Evaluación eliminada.');
+}
+const csvq = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+const csv = rows => '﻿' + rows.map(r => r.map(csvq).join(',')).join('\r\n');
+function exportCSV() {
+    const list = filteredEvals();
+    if (!list.length) return tell('No hay evaluaciones para exportar.');
+    const rows = [['Fecha', 'Momento', 'Grupo', 'Equipo', 'Integrantes', 'Tema', 'Instrumento', 'Calificación', 'Detalle', 'Comentarios']];
+    list.forEach(e => {
+        const t = e.snapshot;
+        const det = t.type === 'rubric' ? t.criteria.map((c, i) => `${c.name}: ${e.answers[i] ? e.answers[i].v : '-'}`).join('; ')
+            : t.items.map((it, i) => `${e.answers[i] ? '✔' : '✘'} ${it.text}`).join('; ');
+        rows.push([fmtDate(e.header.fecha), e.header.momento, e.header.grupo, e.header.equipo, e.header.integrantes, e.header.tema, t.name, fmt1(e.score), det, e.notes]);
+    });
+    download(`evaluaciones_equipos_${today()}.csv`, csv(rows), 'text/csv;charset=utf-8');
+}
+function exportStudentsCSV() {
+    const list = filteredEvals().filter(e => members(e).length);
+    if (!list.length) return tell('No hay evaluaciones con integrantes para exportar.');
+    const rows = [['Fecha', 'Momento', 'Grupo', 'Equipo', 'Alumno', 'Instrumento', 'Autoevaluación', 'Coevaluación (5-10)', 'Docente', 'Calificación final']];
+    list.forEach(e => peerResults(e).forEach(r => rows.push([fmtDate(e.header.fecha), e.header.momento, e.header.grupo, e.header.equipo, r.name, e.snapshot.name,
+        r.auto != null ? r.auto : '', r.co != null ? r.co.toFixed(1) : '', fmt1(r.hetero), fmt1(r.final)])));
+    download(`calificaciones_alumnos_${today()}.csv`, csv(rows), 'text/csv;charset=utf-8');
+}
+
+/* =================== VISTA DE GRUPO =================== */
+let gState = { team: null }, groupShown = [];
+const lvClass = (l, n) => l == null ? 'lv-none' : 'lv' + (n <= 1 ? 0 : Math.round(l / (n - 1) * 3));
+const scoreClass = v => v == null ? 'lv-none' : v >= 9.5 ? 'lv0' : v >= 8 ? 'lv1' : v >= 6 ? 'lv2' : 'lv3';
+function columnsFor(tplId, evs) {
+    const t = getTpl(tplId) || evs[evs.length - 1].snapshot;
+    return { t, cols: t.type === 'rubric' ? t.criteria.map(c => c.name) : t.items.map(it => it.text) };
+}
+function latestPerTeam(evs) {
+    const map = {};
+    evs.forEach(e => { const k = teamKey(e), o = map[k];
+        if (!o || momIdx(e.header.momento) > momIdx(o.header.momento) || (momIdx(e.header.momento) === momIdx(o.header.momento) && (e.header.fecha || '') > (o.header.fecha || ''))) map[k] = e; });
+    return Object.values(map);
+}
+function renderGroup(refresh) {
+    const gG = $('gGroup'), gT = $('gTemplate'), gM = $('gMomento');
+    const groups = [...new Set(db.evaluations.map(e => e.header.grupo.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+    if (refresh || !gG.options.length) {
+        const gv = gG.value, mv = gM.value;
+        gG.innerHTML = groups.map(x => `<option>${esc(x)}</option>`).join('');
+        gG.value = groups.includes(gv) ? gv : (groups[0] || '');
+        gM.innerHTML = '<option value="">Más reciente de cada equipo</option>' + momentos().map(m => `<option>${esc(m)}</option>`).join('');
+        gM.value = mv;
+    }
+    const body = $('groupBody'), prog = $('teamProgress');
+    if (!groups.length) {
+        gT.innerHTML = ''; prog.innerHTML = ''; $('btnPrintAll').disabled = true;
+        body.innerHTML = '<div class="empty-state"><span class="ico">👥</span>Aún no hay evaluaciones con grupo. Evalúa algunos equipos y aquí verás el panorama del grupo.</div>';
+        return;
+    }
+    const grupo = gG.value;
+    const inGroup = db.evaluations.filter(e => e.header.grupo.trim() === grupo);
+    const tpls = {}; inGroup.forEach(e => tpls[e.templateId] = e.snapshot.name);
+    const tv = gT.value;
+    gT.innerHTML = Object.entries(tpls).map(([id, n]) => `<option value="${id}">${esc(n)}</option>`).join('');
+    gT.value = tpls[tv] ? tv : Object.keys(tpls)[0];
+    const all = inGroup.filter(e => e.templateId === gT.value);
+    let evs = gM.value ? all.filter(e => e.header.momento === gM.value) : all;
+    evs = latestPerTeam(evs).sort((a, b) => (a.header.equipo || '').localeCompare(b.header.equipo || '', 'es', { numeric: true }));
+    groupShown = evs; $('btnPrintAll').disabled = !evs.length;
+    if (!evs.length) { body.innerHTML = `<div class="empty-state">No hay evaluaciones de ${esc(grupo)} en ${esc(gM.value)}.</div>`; prog.innerHTML = ''; return; }
+    const { t, cols } = columnsFor(gT.value, all);
+    const isR = t.type === 'rubric';
+    const colStats = cols.map(() => ({ sum: 0, n: 0, low: 0 }));
+    const rows = evs.map(e => {
+        const cells = cols.map((name, ci) => {
+            const a = ansByName(e, name);
+            if (isR) {
+                if (!a) return '<td class="lv-none">—</td>';
+                const n = e.snapshot.levels.length;
+                colStats[ci].sum += a.v; colStats[ci].n++; if (a.l >= Math.ceil(n / 2)) colStats[ci].low++;
+                return `<td class="${lvClass(a.l, n)}" title="${esc(e.snapshot.levels[a.l].name)}">${a.v}</td>`;
+            }
+            colStats[ci].n++; if (a) colStats[ci].sum++; else colStats[ci].low++;
+            return `<td class="${a ? 'lv0' : 'lv3'}">${a ? '✔' : '✘'}</td>`;
+        }).join('');
+        return `<tr><td class="team${gState.team === teamKey(e) ? ' selected-team' : ''}" onclick="selectTeam('${e.id}')" tabindex="0" onkeydown="if(event.key==='Enter')selectTeam('${e.id}')">${esc(e.header.equipo || 'Sin nombre')}<small>${esc(e.header.momento)}</small></td>${cells}
+            <td class="${scoreClass(e.score)}">${fmt1(e.score)}</td></tr>`;
+    }).join('');
+    const avgRow = colStats.map(s => {
+        if (!s.n) return '<td class="lv-none">—</td>';
+        if (isR) { const v = s.sum / s.n; return `<td class="${scoreClass(v)}">${v.toFixed(1)}</td>`; }
+        const pct = Math.round(s.sum / s.n * 100); return `<td class="${scoreClass(pct / 10)}">${pct}%</td>`;
+    }).join('');
+    const scores = evs.map(e => e.score).filter(v => v != null);
+    const gAvg = scores.reduce((a, b) => a + b, 0) / (scores.length || 1);
+    const sorted = colStats.map((s, ci) => ({ name: cols[ci], avg: s.n ? s.sum / s.n : null, low: s.low, n: s.n })).filter(x => x.avg != null).sort((a, b) => a.avg - b.avg);
+    const weak = sorted[0], strong = sorted[sorted.length - 1];
+    let insight = '';
+    if (weak && strong && sorted.length > 1 && weak.avg < strong.avg) insight = isR
+        ? `<div class="insight weak">📌 <b>Para reforzar con todo el grupo: ${esc(weak.name)}</b> — promedio ${weak.avg.toFixed(1)}; ${weak.low} de ${weak.n} equipos están en la mitad baja de la rúbrica. ${weak.low >= Math.ceil(weak.n / 2) ? 'Como es la mayoría, conviene retomarlo en clase antes de la siguiente revisión.' : ''}</div>
+           <div class="insight strong">⭐ <b>Fortaleza del grupo: ${esc(strong.name)}</b> — promedio ${strong.avg.toFixed(1)}.</div>`
+        : `<div class="insight weak">📌 <b>Lo menos cumplido: ${esc(weak.name)}</b> — solo ${Math.round(weak.avg * 100)}% de los equipos.</div>
+           <div class="insight strong">⭐ <b>Lo más cumplido: ${esc(strong.name)}</b> — ${Math.round(strong.avg * 100)}% de los equipos.</div>`;
+    const legend = isR ? `<div class="legend">${t.levels.map((l, j) => `<span><i class="${lvClass(j, t.levels.length)}"></i>${esc(l.name)} (${rangeLabel(l.scores)})</span>`).join('')}</div>` : '';
+    body.innerHTML = `<div class="stats"><div class="stat"><b>${evs.length}</b>equipos</div><div class="stat"><b>${gAvg.toFixed(1)}</b>promedio del grupo</div></div>
+        ${insight}${legend}
+        <div class="panel" style="overflow-x:auto;padding:10px"><table class="heat">
+            <thead><tr><th>Equipo</th>${cols.map(c => `<th>${esc(c)}</th>`).join('')}<th>Calif.</th></tr></thead>
+            <tbody>${rows}<tr class="avg-row"><td class="team" style="cursor:default">${isR ? 'Promedio' : '% que cumple'}</td>${avgRow}<td class="${scoreClass(gAvg)}">${gAvg.toFixed(1)}</td></tr></tbody>
+        </table></div>`;
+    if (gState.team) { const e = all.find(x => teamKey(x) === gState.team); prog.innerHTML = e ? progressHTML(e) : ''; } else prog.innerHTML = '';
+}
+function selectTeam(id) { gState.team = teamKey(db.evaluations.find(x => x.id === id)); renderGroup(); $('teamProgress').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+async function showTeamProgress(id) {
+    const e = db.evaluations.find(x => x.id === id);
+    await go('group');
+    $('gGroup').value = e.header.grupo.trim(); renderGroup();
+    $('gTemplate').value = e.templateId; gState.team = teamKey(e); renderGroup();
+    $('teamProgress').scrollIntoView({ block: 'start' });
+}
+function progressHTML(ref) {
+    const evs = db.evaluations.filter(e => sameTeam(e, ref) || e.id === ref.id)
+        .sort((a, b) => momIdx(a.header.momento) - momIdx(b.header.momento) || (a.header.fecha || '').localeCompare(b.header.fecha || ''));
+    const { t, cols } = columnsFor(ref.templateId, evs);
+    const isR = t.type === 'rubric', first = evs[0], last = evs[evs.length - 1];
+    const val = (e, name) => { const a = ansByName(e, name); return isR ? (a ? a.v : null) : (a ? 1 : 0); };
+    const cell = (e, name) => { const a = ansByName(e, name);
+        if (isR) return a ? `<td class="${lvClass(a.l, e.snapshot.levels.length)}">${a.v}</td>` : '<td class="lv-none">—</td>';
+        return `<td class="${a ? 'lv0' : 'lv3'}">${a ? '✔' : '✘'}</td>`; };
+    return `<div class="panel progress-panel">
+        <div class="page-head"><h2>📈 Progreso: ${esc(ref.header.equipo)} · ${esc(ref.header.grupo)}</h2>
+            <button class="btn-icon" type="button" onclick="gState.team=null; renderGroup()">✕ Cerrar</button></div>
+        ${ref.header.integrantes ? `<p class="muted" style="margin-top:-6px">${esc(ref.header.integrantes)}</p>` : ''}
+        ${evs.length < 2 ? '<p class="muted">Solo hay una evaluación de este equipo. Cuando lo evalúes en otro momento aquí verás su avance.</p>' : ''}
+        <div style="overflow-x:auto"><table class="heat"><thead><tr><th>${isR ? 'Criterio' : 'Elemento'}</th>
+            ${evs.map(e => `<th><a href="#" onclick="openEval('${e.id}');return false">${esc(e.header.momento)}</a><br><span style="font-weight:400">${fmtDate(e.header.fecha)}</span></th>`).join('')}<th>Cambio</th></tr></thead>
+            <tbody>${cols.map(name => `<tr><td class="team" style="cursor:default">${esc(name)}</td>${evs.map(e => cell(e, name)).join('')}<td>${evs.length > 1 && isR ? deltaHTML(val(last, name), val(first, name)) : ''}</td></tr>`).join('')}
+            <tr class="avg-row"><td class="team" style="cursor:default">Calificación</td>${evs.map(e => `<td class="${scoreClass(e.score)}">${fmt1(e.score)}</td>`).join('')}<td>${evs.length > 1 ? deltaHTML(last.score, first.score) : ''}</td></tr></tbody>
+        </table></div>
+        <div class="btn-row" style="margin-top:12px"><button class="btn-ghost" type="button" onclick="printFeedback([db.evaluations.find(x=>x.id==='${last.id}')])">🖨 Retroalimentación (${esc(last.header.momento)})</button></div>
+    </div>`;
+}
+
+/* =================== HOJAS IMPRESAS =================== */
+const sheetFoot = () => `<div class="foot">${esc([db.settings.teacher, db.settings.school].filter(Boolean).map(x => x + ' · ').join(''))}Evaluador Docente · Weird Games</div>`;
+function feedbackSheet(ev) {
+    const t = ev.snapshot, hd = ev.header, prev = prevEval(ev), showScore = db.settings.fbScore;
+    let body;
+    if (t.type === 'rubric') {
+        body = `<table><thead><tr><th style="width:18%">Criterio</th><th style="width:14%">Nivel</th><th>✔ Lo que ya logran</th><th>➜ Siguiente paso</th>${prev ? '<th style="width:10%">Avance</th>' : ''}</tr></thead><tbody>
+        ${t.criteria.map((c, i) => {
+            const a = ev.answers[i];
+            if (!a) return `<tr><td><b>${esc(c.name)}</b></td><td colspan="${prev ? 4 : 3}" style="color:#999">No evaluado</td></tr>`;
+            const f = feedbackFor(t, i, a), pa = prev && ansByName(prev, c.name);
+            const av = prev ? (!pa ? '—' : a.v > pa.v ? '▲ Mejoró' : a.v < pa.v ? '▼ Bajó' : '= Igual') : '';
+            return `<tr><td><b>${esc(c.name)}</b></td><td>${esc(f.level)}${showScore ? ` (${a.v})` : ''}</td><td>${esc(f.logra)}</td><td>${esc(f.next)}</td>${prev ? `<td>${av}</td>` : ''}</tr>`;
+        }).join('')}</tbody></table>`;
+    } else {
+        const done = t.items.filter((_, i) => ev.answers[i]), pend = t.items.filter((_, i) => !ev.answers[i]);
+        body = `<table><thead><tr><th>✔ Lo que ya cumplen</th><th>➜ Pendiente para la siguiente revisión</th></tr></thead><tbody><tr>
+            <td><ul>${done.map(it => `<li>${esc(it.text)}</li>`).join('') || '<li>—</li>'}</ul></td>
+            <td><ul>${pend.map(it => `<li>${esc(it.text)}</li>`).join('') || '<li>¡Nada pendiente!</li>'}</ul></td></tr></tbody></table>`;
+    }
+    const pr = showScore && members(ev).length ? peerResults(Object.assign({}, ev, { score: ev.score ?? computeScore(ev).score })) : [];
+    return `<div class="sheet">
+        <h2>Retroalimentación · ${esc(t.name)}</h2>
+        <div class="meta"><div><b>Equipo:</b> ${esc(hd.equipo)}</div><div><b>Grupo:</b> ${esc(hd.grupo)}</div>
+            <div><b>Momento:</b> ${esc(hd.momento)}</div><div><b>Fecha:</b> ${fmtDate(hd.fecha)}</div>
+            ${hd.tema ? `<div style="grid-column:1/-1"><b>Tema:</b> ${esc(hd.tema)}</div>` : ''}
+            ${hd.integrantes ? `<div style="grid-column:1/-1"><b>Integrantes:</b> ${esc(hd.integrantes)}</div>` : ''}</div>
+        ${body}
+        <h3>Comentarios del docente</h3>
+        <div class="notes">${esc(ev.notes).replace(/\n/g, '<br>') || '&nbsp;'}</div>
+        ${showScore && (ev.score ?? computeScore(ev).score) != null ? `<p style="text-align:right;font-size:12pt"><b>Calificación del equipo: ${fmt1(ev.score ?? computeScore(ev).score)}</b></p>` : ''}
+        ${pr.length ? `<table style="margin-top:8px"><thead><tr><th>Alumno</th><th>Auto</th><th>Coevaluación</th><th>Docente</th><th>Final</th></tr></thead><tbody>
+            ${pr.map(r => `<tr><td>${esc(r.name)}</td><td>${fmt1(r.auto)}</td><td>${fmt1(r.co)}</td><td>${fmt1(r.hetero)}</td><td><b>${fmt1(r.final)}</b></td></tr>`).join('')}</tbody></table>` : ''}
+        ${sheetFoot()}
+    </div>`;
+}
+function blankSheet(t) {
+    const head = `<h2>${esc(t.name)}</h2>${t.description ? `<p>${esc(t.description)}</p>` : ''}
+        <div class="meta"><div><b>Equipo / alumno:</b> <span class="line"></span></div><div><b>Grupo:</b> <span class="line" style="min-width:80px"></span></div>
+        <div><b>Tema:</b> <span class="line"></span></div><div><b>Fecha:</b> <span class="line" style="min-width:100px"></span></div></div>`;
+    let body;
+    if (t.type === 'rubric') {
+        const tw = t.criteria.reduce((s, c) => s + (+c.weight || 1), 0);
+        const weighted = t.criteria.some(c => (c.weight || 1) !== 1);
+        body = `<table><thead><tr><th style="width:16%">Criterio</th>${t.levels.map(l => `<th>${esc(l.name)} (${rangeLabel(l.scores)})</th>`).join('')}<th style="width:9%">Calif.</th></tr></thead><tbody>
+            ${t.criteria.map(c => `<tr><td><b>${esc(c.name)}</b>${weighted ? `<br><small>${Math.round((+c.weight || 1) / tw * 100)}% de la calificación</small>` : ''}</td>${t.levels.map((_, j) => `<td>${esc(c.desc[j] || '')}</td>`).join('')}<td></td></tr>`).join('')}
+            <tr><td colspan="${t.levels.length + 1}" style="text-align:right"><b>Calificación final</b></td><td></td></tr></tbody></table>`;
+    } else {
+        body = `<table><thead><tr><th style="width:40px">✔</th><th>Elemento</th></tr></thead><tbody>${t.items.map(it => `<tr><td style="text-align:center"><span class="box"></span></td><td>${esc(it.text)}</td></tr>`).join('')}</tbody></table>`;
+    }
+    return `<div class="sheet">${head}${body}<h3>Observaciones</h3><div class="notes" style="min-height:70px"></div>${sheetFoot()}</div>`;
+}
+function printSheets(html) {
+    $('printArea').innerHTML = html;
+    document.body.classList.add('printing-sheet');
+    const done = () => { document.body.classList.remove('printing-sheet'); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    window.print(); setTimeout(done, 1500);
+}
+function printFeedback(list) {
+    list = list.filter(Boolean); if (!list.length) return;
+    if (list[0] === cur) cur.score = computeScore(cur).score;
+    printSheets(list.map(feedbackSheet).join(''));
+}
+function printGroupFeedback() { if (groupShown.length) printFeedback(groupShown); }
+function printBlank(id) { printSheets(blankSheet(getTpl(id))); }
+
+/* =================== AJUSTES =================== */
+let settingsTab = 'profile';
+function renderSettings() { showSettings(settingsTab); }
+function showSettings(tab) {
+    settingsTab = tab;
+    document.querySelectorAll('#settingsNav button').forEach(b => b.classList.toggle('active', b.dataset.s === tab));
+    const s = db.settings, el = $('settingsBody');
+    if (tab === 'profile') {
+        el.innerHTML = `<div class="panel"><h3>Tus datos</h3>
+            <div class="grid g2">
+                <label class="field">Nombre del docente <input type="text" value="${esc(s.teacher)}" placeholder="Aparece en las hojas impresas" onchange="db.settings.teacher=this.value.trim(); persist(); toast('Guardado.')"></label>
+                <label class="field">Escuela <input type="text" value="${esc(s.school)}" placeholder="Opcional" onchange="db.settings.school=this.value.trim(); persist(); toast('Guardado.')"></label>
+            </div>
+            <h3>Apariencia</h3>
+            <div class="seg" role="group" aria-label="Tema">${[['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Oscuro']].map(([v, l]) =>
+                `<button type="button" class="${s.theme === v ? 'on' : ''}" onclick="db.settings.theme='${v}'; persist(); applyTheme(); showSettings('profile')">${l}</button>`).join('')}</div>
+            <h3>Momentos de evaluación</h3>
+            <p class="muted small">Uno por renglón, en orden. Sirven para comparar el avance de cada equipo.</p>
+            <textarea id="momBox" rows="5">${esc(s.momentos.join('\n'))}</textarea>
+            <div class="btn-row" style="margin-top:8px"><button class="btn-ok" type="button" onclick="saveMomentos()">Guardar momentos</button></div>
+            <h3>Dirección pública del evaluador</h3>
+            <p class="muted small">Se usa para el QR de los alumnos cuando abres el evaluador como archivo en tu computadora. Si lo abres desde internet, se usa esa dirección automáticamente.</p>
+            <input type="text" value="${esc(s.studentUrl)}" placeholder="https://tu-usuario.github.io/evaluador/" onchange="db.settings.studentUrl=this.value.trim(); persist(); toast('Guardado.')">
+        </div>`;
+    } else if (tab === 'groups') {
+        el.innerHTML = `<div class="panel"><div class="page-head"><div><h3 style="margin:0">Grupos y listas de alumnos</h3>
+            <p class="muted small">Pega la lista de cada grupo (un alumno por renglón). Al evaluar, eliges a los integrantes con un toque.</p></div>
+            <button class="btn-primary" type="button" onclick="addGroup()">+ Agregar grupo</button></div>
+            ${db.groups.length ? db.groups.map((g, i) => `<div class="group-card">
+                <div class="head"><input type="text" value="${esc(g.name)}" placeholder="Ej. 1° A" onchange="db.groups[${i}].name=this.value.trim(); persist()" aria-label="Nombre del grupo">
+                    <span class="muted small">${g.students.length} alumnos</span><span style="flex:1"></span>
+                    <button class="btn-icon" type="button" aria-label="Eliminar grupo" onclick="removeGroup(${i})">🗑</button></div>
+                <textarea rows="5" placeholder="Un alumno por renglón" onchange="db.groups[${i}].students=this.value.split('\\n').map(x=>x.trim()).filter(Boolean); persist(); setTimeout(()=>showSettings('groups'))">${esc(g.students.join('\n'))}</textarea>
+            </div>`).join('') : '<div class="empty-state"><span class="ico">🏫</span>Aún no registras grupos.</div>'}
+        </div>`;
+    } else if (tab === 'peer') {
+        el.innerHTML = `<div class="panel"><h3>Criterios de coevaluación</h3>
+            <p class="muted small">Cada alumno califica a sus compañeros en estos aspectos con <b>Nunca (0)</b>, <b>A veces (1)</b> o <b>Siempre (2)</b>. Uno por renglón.</p>
+            <textarea id="coBox" rows="6">${esc(s.coCriteria.join('\n'))}</textarea>
+            <div class="btn-row" style="margin-top:8px"><button class="btn-ok" type="button" onclick="saveCo()">Guardar criterios</button>
+                <button class="btn-ghost" type="button" onclick="db.settings.coCriteria=DEFAULT_CO.slice(); persist(); showSettings('peer')">Restaurar sugeridos</button></div>
+            <h3>Cómo se calcula la calificación final</h3>
+            <p>Calificación final de cada alumno = promedio de <b>autoevaluación</b> (5–10), <b>coevaluación</b> (promedio de 0–2 convertido a 5–10) y <b>calificación docente</b> (la del equipo, o la que ajustes para ese alumno). Cada parte vale 1/3.</p>
+        </div>`;
+    } else if (tab === 'phrases') {
+        el.innerHTML = `<div class="panel"><h3>Banco de frases de retroalimentación</h3>
+            <p class="muted small">Aparecen como botones al evaluar; con un toque se agregan a los comentarios. Una frase por renglón.</p>
+            <textarea id="phrasesEditor" rows="10">${esc(db.phrases.join('\n'))}</textarea>
+            <div class="btn-row" style="margin-top:10px"><button class="btn-ok" type="button" onclick="savePhrases()">Guardar frases</button>
+                <button class="btn-ghost" type="button" onclick="resetPhrases()">Restaurar sugeridas</button></div></div>`;
+    } else {
+        const own = db.templates.filter(t => !t.builtin).length;
+        el.innerHTML = `<div class="stats">
+                <div class="stat"><b>${own}</b>plantillas propias</div><div class="stat"><b>${db.evaluations.length}</b>evaluaciones</div>
+                <div class="stat"><b>${db.groups.length}</b>grupos</div><div class="stat"><b>${storageOK ? '✓' : '✕'}</b>${storageOK ? 'guardado activo' : 'sin guardado'}</div></div>
+            <div class="panel"><h3>Descargar respaldo</h3>
+                <p class="muted small">Todo se guarda en este navegador. Descarga un respaldo de vez en cuando, y siempre antes de cambiar de computadora o borrar el historial del navegador.</p>
+                <button class="btn-primary" type="button" onclick="exportJSON()">⬇ Descargar respaldo (.json)</button></div>
+            <div class="panel"><h3>Restaurar desde un respaldo</h3>
+                <p class="muted small"><b>Combinar</b> agrega lo que no tengas. <b>Reemplazar</b> borra lo actual y deja solo lo del archivo. También acepta respaldos de la versión 1.</p>
+                <div class="btn-row"><input type="file" id="importFile" accept=".json,application/json" style="max-width:300px">
+                    <button class="btn-ok" type="button" onclick="importJSON('merge')">Combinar</button>
+                    <button class="btn-danger" type="button" onclick="importJSON('replace')">Reemplazar todo</button></div></div>`;
+    }
+}
+document.getElementById('settingsNav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showSettings(b.dataset.s); });
+function saveMomentos() {
+    const list = [...new Set($('momBox').value.split('\n').map(x => x.trim()).filter(Boolean))];
+    if (!list.length) return tell('Escribe al menos un momento.');
+    db.settings.momentos = list; persist(); toast('Momentos guardados.');
+}
+function saveCo() {
+    const list = $('coBox').value.split('\n').map(x => x.trim()).filter(Boolean);
+    if (!list.length) return tell('Escribe al menos un criterio.');
+    db.settings.coCriteria = list; persist(); toast('Criterios guardados.');
+}
+function addGroup() { db.groups.push({ id: uid(), name: '', students: [] }); persist(); showSettings('groups'); }
+async function removeGroup(i) { if (!(await ask(`¿Eliminar el grupo "${db.groups[i].name || 'sin nombre'}"? Las evaluaciones no se borran.`, { ok: 'Eliminar', danger: true }))) return; db.groups.splice(i, 1); persist(); showSettings('groups'); }
+function savePhrases() { db.phrases = $('phrasesEditor').value.split('\n').map(s => s.trim()).filter(Boolean); persist(); toast('Frases guardadas.'); }
+async function resetPhrases() { if (!(await ask('¿Cambiar tus frases por las sugeridas?'))) return; db.phrases = DEFAULT_PHRASES.slice(); persist(); showSettings('phrases'); }
+function exportJSON() {
+    const data = { app: 'evaluador-docente', version: APP_VERSION, exportedAt: new Date().toISOString(),
+        templates: db.templates.filter(t => !t.builtin), evaluations: db.evaluations, phrases: db.phrases, settings: db.settings, groups: db.groups };
+    download(`respaldo_evaluador_${today()}.json`, JSON.stringify(data, null, 2), 'application/json');
+}
+function importJSON(mode) {
+    const f = $('importFile').files[0];
+    if (!f) return tell('Primero elige el archivo de respaldo.');
+    const reader = new FileReader();
+    reader.onload = async () => {
+        let d; try { d = JSON.parse(reader.result); } catch (e) { return tell('El archivo no es un respaldo válido.'); }
+        if (!Array.isArray(d.templates) || !Array.isArray(d.evaluations)) return tell('El archivo no es un respaldo válido.');
+        if (mode === 'replace') {
+            if (!(await ask('Esto borrará tus plantillas, evaluaciones y grupos actuales y los cambiará por los del archivo. ¿Continuar?', { ok: 'Reemplazar', danger: true }))) return;
+            db = { templates: d.templates, evaluations: d.evaluations, phrases: d.phrases, settings: d.settings, groups: d.groups };
+            migrate(); persist(); showSettings('backup'); return toast('Datos reemplazados.');
+        }
+        const tIds = new Set(db.templates.map(t => t.id)), eIds = new Set(db.evaluations.map(e => e.id));
+        const nt = d.templates.filter(t => !t.locked && !t.builtin && !tIds.has(t.id));
+        const ne = d.evaluations.filter(e => !eIds.has(e.id));
+        db.templates.push(...nt); db.evaluations.push(...ne);
+        if (Array.isArray(d.phrases)) db.phrases = [...new Set([...db.phrases, ...d.phrases])];
+        if (Array.isArray(d.groups)) d.groups.forEach(g => { if (!db.groups.some(x => norm(x.name) === norm(g.name))) db.groups.push(g); });
+        migrate(); persist(); showSettings('backup');
+        toast(`Importado: ${nt.length} plantillas y ${ne.length} evaluaciones nuevas.`);
+    };
+    reader.readAsText(f);
+}
+
+/* =================== INICIO =================== */
+window.addEventListener('beforeunload', e => { if ((cur && !curSaved && hasAnswers()) || editorDirty) { e.preventDefault(); e.returnValue = ''; } });
+(function init() {
+    const hash = location.hash || '';
+    if (hash.startsWith('#a=')) {
+        let p = null; try { p = b64d(hash.slice(3)); } catch (e) { }
+        try { db.settings = { coCriteria: DEFAULT_CO }; } catch (e) { }
+        if (p && Array.isArray(p.m)) { p.c = Array.isArray(p.c) && p.c.length ? p.c : DEFAULT_CO; return renderStudent(p); }
+        document.body.innerHTML = '<main><div class="empty-state">Este enlace no es válido. Pide a tu maestro un código nuevo.</div></main>';
+        return;
+    }
+    load();
+    if (hash.startsWith('#r=')) {
+        const r = importResponses(hash.slice(3));
+        history.replaceState(null, '', location.pathname);
+        if (r.added) {
+            cur = clone(db.evaluations.find(e => e.id === r.ids[0])); curSaved = true;
+            go('evaluate').then(() => { toast('Respuesta del alumno agregada.'); setTimeout(() => $('panel360').scrollIntoView({ behavior: 'smooth' }), 300); });
+            return;
+        }
+        go('library').then(() => tell(r.msg || 'El código de respuesta no es válido.'));
+        return;
+    }
+    go('library');
+    checkDraft();
+})();
+</script>
+</body>
+</html>
